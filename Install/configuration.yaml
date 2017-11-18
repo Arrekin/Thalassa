@@ -1,0 +1,13 @@
+---
+# Where to checkout/store Thalassa sources
+sources: /mnt/d/Thalassa/
+
+# Where to actualy build app
+thalassa_path: /opt/Thalassa/
+
+# Git settings
+git:
+    thalassa_repo:  https://github.com/Arrekin/Thalassa.git
+    default_branch: master
+
+...
