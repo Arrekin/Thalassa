@@ -1,9 +1,12 @@
 ---
 # Where to checkout/store Thalassa sources
-sources: /mnt/d/Thalassa/
+sources: /mnt/d/Thalassa
 
 # Where to actualy build app
-thalassa_path: /opt/Thalassa/
+thalassa_path: /opt/Thalassa
+
+# Thalassa Apps user
+user: thalassa
 
 # Git settings
 git:

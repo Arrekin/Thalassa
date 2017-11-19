@@ -11,4 +11,7 @@ setup(
     url="https://github.com/Arrekin/Thalassa",
     author="Daniel Misior",
     packages=["thalassa"],
+    install_requires=[
+        "Twisted"
+    ],
 )
