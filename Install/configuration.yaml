@@ -3,7 +3,8 @@
 sources: /mnt/d/Thalassa
 
 # Where to actualy build app
-thalassa_path: /opt/Thalassa
+thalassa_path:
+    api: /opt/Thalassa/ThalassaApi
 
 # Thalassa Apps user
 user: thalassa

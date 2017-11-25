@@ -131,7 +131,7 @@ class Pip3Installer():
                 install_dependencies=True, # Whether install or not dependencies
                 package_path=None # Path to sources if not downloadable
                 ):
-        logger.info("Begin package installation [%s]", self.name)
+        logger.info("Starting package installation [%s]", self.name)
         package_already_exists = False
         # First check whether package is already installed
         bash_cmd = "pip3 list --format=columns | grep %s | wc -l" % self.name
@@ -160,6 +160,42 @@ class Pip3Installer():
         logger.info("Package [%s] was installed.", self.name)
         return True
 
+class ThalassaApiInstaller():
+    """ Installs ThalassaApi """
+
+    @staticmethod
+    def are_requirements_met():
+        """ Cheks requirements for Thalassa API """
+
+        logger.info("Checking requirements for ThalassaApiIstaller...")
+        logger.info("Everything is OK.")
+        return True
+
+    def install(self, *, install_path, sources_path, user):
+        """ Instal Thalassa Api from given sources in path specified
+            in instal_path. Set files and dirs for user. """
+        
+        logger.info("Starting Thalassa Api installation...")
+        # Remove old installation if one exists
+        if os.path.exists(install_path):
+            shutil.rmtree(install_path, ignore_errors=True)
+            logger.info("Old instaallation was removed")
+
+        shutil.copytree(sources_path, install_path)
+        logger.debug("All files copied.")
+
+        for root, dirs, files in os.walk(install_path):
+            for dir in dirs:
+                shutil.chown(os.path.join(root, dir), user)
+            for file in files:
+                shutil.chown(os.path.join(root, file), user)
+        logger.debug("Files and directories owner updated to: [%s]", user)
+
+        logger.info("Thalassa Api was installed.")
+        return True
+
+
+
 if __name__ == "__main__":
     # First initialize logger
     logging_dir = "/var/log/Thalassa"
@@ -172,7 +208,8 @@ if __name__ == "__main__":
     # Now check wheter installer has all it needs.
     logger.info("Evaluating installation requirements...")
     evaluation_table = [
-        Pip3Installer.are_requirements_met(),    
+        Pip3Installer.are_requirements_met(),
+        ThalassaApiInstaller.are_requirements_met(),
     ]
 
     if not all(evaluation_table):
@@ -202,12 +239,9 @@ if __name__ == "__main__":
 
 
     # Install ThalassaAPI service
-    api_path = config["thalassa_path"]
-    if not os.path.isdir(api_path):
-        os.mkdir(api_path)
-        shutil.chown(api_path, user=config["user"])
-    shutil.copy("%s/ThalassaApi/ThalassaApi.py" % config["sources"], "%s/ThalassaApi.py" % config["thalassa_path"])
-    shutil.chown("%s/ThalassaApi.py" % config["thalassa_path"], user=config["user"])
-
-    shutil.rmtree("%s/html" % config["thalassa_path"], ignore_errors=True)
-    shutil.copytree("%s/ThalassaApi/html" % config["sources"], "%s/html" % config["thalassa_path"])
+    thalassa_api = ThalassaApiInstaller()
+    was_installed = thalassa_api.install(install_path=config["thalassa_path"]["api"],
+                                         sources_path="%s/ThalassaApi" % config["sources"],
+                                         user=config["user"])
+    if not was_installed:
+        print("Warning: Thalassa Api was not installed")
