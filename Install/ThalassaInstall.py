@@ -22,6 +22,16 @@ def parse_arguments():
     parser.add_argument("--conf",
                         help="Allows to provide custom configuration",
                         default="configuration.yaml")
+    parser.add_argument("--stdout_level",
+                        help="Set logs level that should be printed to stdout(default INFO)",
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                        default='INFO',
+                        action='store')
+    parser.add_argument("--log_level",
+                        help="Set logs level for logs stored in files(default DEBUG)",
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+                        default='DEBUG',
+                        action='store')
     return parser.parse_args()
 
 
@@ -52,11 +62,19 @@ class InstallerLogger():
     """ Logging wrapper for this installer. """
 
     __loggers = {}
+    __levels_mapper = {
+            'DEBUG': logging.DEBUG,
+            'INFO' : logging.INFO,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'CRITICAL': logging.CRITICAL,
+        }
 
-    def __init__(self, path, level=logging.DEBUG, print_level=logging.INFO):
+    def __init__(self, path, *, logfile_level='DEBUG', stdout_level='INFO'):
         
-        self.level = level
-        self.print_level = print_level
+        self.logfile_level = self.__class__.__levels_mapper[logfile_level]
+        self.stdout_level = self.__class__.__levels_mapper[stdout_level]
+        self.level = min(self.logfile_level, self.stdout_level)
         try:
             self.logger = InstallerLogger.__loggers[__name__]
         except KeyError:
@@ -67,7 +85,7 @@ class InstallerLogger():
             # Assign file handler
             logfilename = "%s/ThalassaInstaller-%s.log" % (path, str(time.time()))
             handler = logging.FileHandler(logfilename)
-            handler.setLevel(self.level)
+            handler.setLevel(self.logfile_level)
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
 
@@ -75,14 +93,14 @@ class InstallerLogger():
 
             # Assign stdout handler
             stdout_handler = logging.StreamHandler(sys.stdout)
-            stdout_handler.setLevel(self.print_level)
+            stdout_handler.setLevel(self.stdout_level)
             stdout_formatter = logging.Formatter('[%(levelname)s] - %(message)s')
             stdout_handler.setFormatter(stdout_formatter)
 
             self.logger.addHandler(stdout_handler)
 
             # Add logger to the dict so we do not need to setup it anymore
-            InstallerLogger.__loggers[__name__] = self.logger
+            self.__class__.__loggers[__name__] = self.logger
 
     def debug(self, *args):
         """ Wrapper for logging.debug """
@@ -205,11 +223,15 @@ class ThalassaApiInstaller():
 
 
 if __name__ == "__main__":
+    args = parse_arguments()
+
     # First initialize logger
     logging_dir = "/var/log/Thalassa"
     if not os.path.isdir(logging_dir):
         os.mkdir(logging_dir)
-    logger = InstallerLogger(logging_dir)
+    logger = InstallerLogger(logging_dir,
+                             logfile_level=args.log_level,
+                             stdout_level=args.stdout_level)
 
     logger.info("Installer started.")
 
@@ -223,7 +245,6 @@ if __name__ == "__main__":
     if not all(evaluation_table):
         fail_installation()
 
-    args = parse_arguments()
 
     # Load configuration file
     try:
