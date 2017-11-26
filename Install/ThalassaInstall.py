@@ -10,6 +10,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import time
 import yaml
 
@@ -52,9 +53,10 @@ class InstallerLogger():
 
     __loggers = {}
 
-    def __init__(self, path, level=logging.DEBUG):
+    def __init__(self, path, level=logging.DEBUG, print_level=logging.INFO):
         
         self.level = level
+        self.print_level = print_level
         try:
             self.logger = InstallerLogger.__loggers[__name__]
         except KeyError:
@@ -66,12 +68,18 @@ class InstallerLogger():
             logfilename = "%s/ThalassaInstaller-%s.log" % (path, str(time.time()))
             handler = logging.FileHandler(logfilename)
             handler.setLevel(self.level)
-
-            # Assign formatter
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
 
             self.logger.addHandler(handler)
+
+            # Assign stdout handler
+            stdout_handler = logging.StreamHandler(sys.stdout)
+            stdout_handler.setLevel(self.print_level)
+            stdout_formatter = logging.Formatter('[%(levelname)s] - %(message)s')
+            stdout_handler.setFormatter(stdout_formatter)
+
+            self.logger.addHandler(stdout_handler)
 
             # Add logger to the dict so we do not need to setup it anymore
             InstallerLogger.__loggers[__name__] = self.logger
@@ -179,7 +187,7 @@ class ThalassaApiInstaller():
         # Remove old installation if one exists
         if os.path.exists(install_path):
             shutil.rmtree(install_path, ignore_errors=True)
-            logger.info("Old instaallation was removed")
+            logger.info("Old installation was removed")
 
         shutil.copytree(sources_path, install_path)
         logger.debug("All files copied.")

@@ -2,7 +2,7 @@ from setuptools import setup
 
 MAJOR = 0
 MINOR = 1
-RELEASE = 1
+RELEASE = 2
 
 setup(
     name="Thalassa",
@@ -12,6 +12,7 @@ setup(
     author="Daniel Misior",
     packages=["thalassa"],
     install_requires=[
-        "Twisted"
+        "Twisted",
+        "sqlalchemy",
     ],
 )
