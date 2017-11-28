@@ -138,8 +138,7 @@ class Pip3Installer():
             logger.error("Unexpected error; Terminating installation...")
             return False
         if out != b'1\n':
-            print("python3-pip is not installed!")
-            logger.error("Expected command output was: 1; Terminating installation...")
+            logger.error("python3-pip is not installed! Terminating installation...")
             return False
         
         logger.info("Everything is OK.")
@@ -185,6 +184,57 @@ class Pip3Installer():
 
         logger.info("Package [%s] was installed.", self.name)
         return True
+
+
+class AptInstaller():
+    """ Handles installation of 3rd party packages via apt-get. """
+
+    @staticmethod
+    def are_requirements_met():
+        """ Cheks requirements for python packages installer """
+
+        logger.info("Checking requirements for AptInstaller...") 
+        logger.info("Everything is OK.")
+        return True
+
+    def __init__(self, name):
+        """ 
+            - name - 3rd party package name
+        """
+
+        self.name = name
+
+    def install(self, *,
+                force_reinstall=False # If true package will be reinstalled
+                ):
+        logger.info("Starting package installation [%s]", self.name)
+        package_already_exists = False
+        # First check whether package is already installed
+        bash_cmd = "dpkg -l | grep \'\\b\'%s | wc -l" % self.name
+        out, err = execute_bash_command(bash_cmd, shell=True)
+        if err:
+            logger.error("Unexpected error when installing python package [%s]",
+                         self.name)
+            return False
+        if out != b'0\n':
+            package_already_exists = True
+            logger.info("Package [%s] is already installed", self.name)
+            if not force_reinstall:
+                logger.info("[%s] package installation skipped", self.name)
+                return False
+        
+        bash_cmd = "apt-get install %s %s" % (
+            "--reinstall" if force_reinstall and package_already_exists else "",
+            self.name)
+        out, err = execute_bash_command(bash_cmd, shell=True)
+        if err:
+            logger.error("Unexpected error when installing 3rd party package [%s]", 
+                         self.name)
+            return False
+
+        logger.info("Package [%s] was installed.", self.name)
+        return True
+
 
 class ThalassaApiInstaller():
     """ Installs ThalassaApi """
@@ -257,6 +307,17 @@ if __name__ == "__main__":
 
     logger.info("Configuration loaded.")
     logger.debug(config)
+
+    # Install sqlite
+    sqlite = AptInstaller("sqlite3")
+    was_installed = sqlite.install(force_reinstall=False)
+    if not was_installed:
+        print("Warning: sqlite3 was not installed")
+
+    libsqlite = AptInstaller("libsqlite3-dev")
+    was_installed = libsqlite.install(force_reinstall=False)
+    if not was_installed:
+        print("Warning: libsqlite3-dev was not installed")
 
     # Install ThalassaCore
     thalassa_core = Pip3Installer("Thalassa")
