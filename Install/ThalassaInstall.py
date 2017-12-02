@@ -319,6 +319,11 @@ if __name__ == "__main__":
     if not was_installed:
         print("Warning: libsqlite3-dev was not installed")
 
+    # DB destination
+    if not os.path.exists('/var/lib/thalassa'):
+        os.mkdir('/var/lib/thalassa')
+    shutil.chown('/var/lib/thalassa', config["user"])
+
     # Install ThalassaCore
     thalassa_core = Pip3Installer("Thalassa")
     was_installed = thalassa_core.install(force_reinstall=True,
