@@ -17,7 +17,6 @@ import yaml
 
 def parse_arguments():
     """ Parses command line arguments. """
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--conf",
                         help="Allows to provide custom configuration",
@@ -37,7 +36,6 @@ def parse_arguments():
 
 def execute_bash_command(command, shell=False):
     """ Executes given bash command. """
-
     logger.debug("Running bash command [%s]", command)
     command = command if shell else command.split()
     process = subprocess.Popen(command, 
@@ -53,12 +51,36 @@ def execute_bash_command(command, shell=False):
 
     return out, err
 
+
 def fail_installation():
+    """ Mark installation as failure and exit installator. """
     logger.error("Installation failed :<")
     print("Installation failed, check logs.")
     exit()
 
-class InstallerLogger():
+
+def ensure_path_exists(path, user=None):
+    """ Checks whether given path exists and create it if not.
+        If user is specified he will take ownership of deepest catalog. """
+    if not path:
+        return
+
+    path_parts = path.split('/')
+
+    # Check if path is absolute or relative
+    path_to_check = "/" if path[0] == '/' else ''
+    for path_part in path_parts:
+        path_to_check = path_to_check + path_part
+        if not os.path.isdir(path_to_check):
+            os.mkdir(path_to_check)
+        path_to_check = path_to_check + "/"
+
+    if user is not None:
+        # Chown final directory(-1 to remove trailing slash)
+        shutil.chown(path_to_check[:-1], user)
+
+
+class InstallerLogger:
     """ Logging wrapper for this installer. """
 
     __loggers = {}
@@ -71,7 +93,6 @@ class InstallerLogger():
         }
 
     def __init__(self, path, *, logfile_level='DEBUG', stdout_level='INFO'):
-        
         self.logfile_level = self.__class__.__levels_mapper[logfile_level]
         self.stdout_level = self.__class__.__levels_mapper[stdout_level]
         self.level = min(self.logfile_level, self.stdout_level)
@@ -102,28 +123,24 @@ class InstallerLogger():
             # Add logger to the dict so we do not need to setup it anymore
             self.__class__.__loggers[__name__] = self.logger
 
-    def debug(self, *args):
+    def debug(self, *args, **kwargs):
         """ Wrapper for logging.debug """
+        self.logger.debug(*args, **kwargs)
 
-        self.logger.debug(*args)
-
-    def info(self, *args):
+    def info(self, *args, **kwargs):
         """ Wrapper for logging.info """
+        self.logger.info(*args, **kwargs)
 
-        self.logger.info(*args)
-
-    def warning(self, *args):
+    def warning(self, *args, **kwargs):
         """ Wrapper for logging.warning """
+        self.logger.warning(*args, **kwargs)
 
-        self.logger.warning(*args)
-
-    def error(self, *args):
+    def error(self, *args, **kwargs):
         """ Wrapper for logging.error """
+        self.logger.error(*args, **kwargs)
 
-        self.logger.error(*args)
 
-
-class Pip3Installer():
+class Pip3Installer:
     """ Handles installation of python packages via pip3. """
 
     @staticmethod
@@ -148,7 +165,6 @@ class Pip3Installer():
         """ 
             - name - Python package name
         """
-
         self.name = name
 
     def install(self, *,
@@ -186,7 +202,7 @@ class Pip3Installer():
         return True
 
 
-class AptInstaller():
+class AptInstaller:
     """ Handles installation of 3rd party packages via apt-get. """
 
     @staticmethod
@@ -201,7 +217,6 @@ class AptInstaller():
         """ 
             - name - 3rd party package name
         """
-
         self.name = name
 
     def install(self, *,
@@ -236,30 +251,46 @@ class AptInstaller():
         return True
 
 
-class ThalassaApiInstaller():
-    """ Installs ThalassaApi """
+class CopyInstaller():
+    """ Installs by just copying files """
 
     @staticmethod
     def are_requirements_met():
-        """ Cheks requirements for Thalassa API """
+        """ Cheks requirements for CopyInstaller """
 
-        logger.info("Checking requirements for ThalassaApiIstaller...")
+        logger.info("Checking requirements for CopyIstaller...")
         logger.info("Everything is OK.")
         return True
 
+    def __init__(self, *, name):
+        """ 
+        Keyword arguments:
+        name         -- what is being installed
+        """
+        self.name = name
+
     def install(self, *, install_path, sources_path, user):
-        """ Instal Thalassa Api from given sources in path specified
-            in instal_path. Set files and dirs for user. """
-        
-        logger.info("Starting Thalassa Api installation...")
+        """ Install package.
+        Keyword arguments:
+        name         -- what is being installed
+        install_path -- where to copy files(i.e. installation directory)
+        sources_path -- catalog to be copied to install_path
+        user         -- installation catalog and all its nodes are to be owned by this guy
+        """
+        logger.info("Starting {name} installation...".format(name=self.name))
         # Remove old installation if one exists
         if os.path.exists(install_path):
             shutil.rmtree(install_path, ignore_errors=True)
             logger.info("Old installation was removed")
+        else:
+            # Ensure that path exists but remove final catalog so copytree wont fail
+            ensure_path_exists(install_path)
+            os.rmdir(install_path)
 
         shutil.copytree(sources_path, install_path)
         logger.debug("All files copied.")
 
+        # Ensure that all files belong to specified user
         for root, dirs, files in os.walk(install_path):
             for dir in dirs:
                 shutil.chown(os.path.join(root, dir), user)
@@ -267,48 +298,12 @@ class ThalassaApiInstaller():
                 shutil.chown(os.path.join(root, file), user)
         logger.debug("Files and directories owner updated to: [%s]", user)
 
-        logger.info("Thalassa Api was installed.")
+        logger.info("{name} was installed.".format(name=self.name))
         return True
 
 
-
-if __name__ == "__main__":
-    args = parse_arguments()
-
-    # First initialize logger
-    logging_dir = "/var/log/Thalassa"
-    if not os.path.isdir(logging_dir):
-        os.mkdir(logging_dir)
-    logger = InstallerLogger(logging_dir,
-                             logfile_level=args.log_level,
-                             stdout_level=args.stdout_level)
-
-    logger.info("Installer started.")
-
-    # Now check wheter installer has all it needs.
-    logger.info("Evaluating installation requirements...")
-    evaluation_table = [
-        Pip3Installer.are_requirements_met(),
-        ThalassaApiInstaller.are_requirements_met(),
-    ]
-
-    if not all(evaluation_table):
-        fail_installation()
-
-
-    # Load configuration file
-    try:
-        with open(args.conf, 'r') as conf_file:
-            config = yaml.load(conf_file)
-    except IOError as exception:
-        print("Failed to load configuration")
-        logger.error("Failed to load configuration!", exc_info=True)
-        fail_installation()
-
-    logger.info("Configuration loaded.")
-    logger.debug(config)
-
-    # Install sqlite
+def install_sqlite():
+    """ Installs sqlite3. """
     sqlite = AptInstaller("sqlite3")
     was_installed = sqlite.install(force_reinstall=False)
     if not was_installed:
@@ -319,24 +314,122 @@ if __name__ == "__main__":
     if not was_installed:
         print("Warning: libsqlite3-dev was not installed")
 
-    # DB destination
-    if not os.path.exists('/var/lib/thalassa'):
-        os.mkdir('/var/lib/thalassa')
-    shutil.chown('/var/lib/thalassa', config["user"])
 
-    # Install ThalassaCore
+def initialize_database(*, config_path):
+    """ Sets up things for database.
+    Keyword arguments:
+    config_path -- catalog containing database config
+    """
+    logger.info("Starting database initialization...")
+    try:
+        config_filepath = "{}/database_config.yaml".format(config_path)
+        with open(config_filepath, 'r') as conf_file:
+            config = yaml.load(conf_file)
+    except IOError as exception:
+        logger.error("Failed to load database configuration!", exc_info=True)
+        fail_installation()
+    # DB destination
+    db_store_path = config['db_store_path']
+    ensure_path_exists(db_store_path, user=config['user'])
+    logger.debug("Databse store catalog set to: [{}]".format(db_store_path))
+    logger.info("Database was initialized.")
+
+
+def install_ThalassaCore(*, sources_path):
+    """ Installs ThalassaCore from sources.
+    Keyword arguments:
+    sources_path -- path to main Thalassa sources catalog
+    """
+    package_path = "{}/ThalassaCore".format(sources_path)
     thalassa_core = Pip3Installer("Thalassa")
     was_installed = thalassa_core.install(force_reinstall=True,
                                           install_dependencies=False,
-                                          package_path="%s/ThalassaCore" % config["sources"])
+                                          package_path=package_path)
     if not was_installed:
         print("Warning: Thalassa Core was not installed")
 
 
-    # Install ThalassaAPI service
-    thalassa_api = ThalassaApiInstaller()
-    was_installed = thalassa_api.install(install_path=config["thalassa_path"]["api"],
-                                         sources_path="%s/ThalassaApi" % config["sources"],
-                                         user=config["user"])
+def install_ThalassaApi(*, install_path, sources_path, user):
+    """ Installs ThalassaApi from given sources.
+    Keyword arguments:
+    install_path -- path to where ThalasaApi should be installed
+    sources_path -- path to main Thalassa sources catalog
+    user         -- user to own installation
+    """
+    package_path = "{}/ThalassaApi".format(sources_path)
+    thalassa_api = CopyInstaller(name="Thalassa Api")
+    was_installed = thalassa_api.install(install_path=install_path,
+                                         sources_path=package_path,
+                                         user=user)
     if not was_installed:
         print("Warning: Thalassa Api was not installed")
+
+
+def install_ThalassaConfig(*, install_path, sources_path, user):
+    """ Copy configuration files to install destination.
+    Keyword arguments:
+    install_path -- where to store configuration
+    sources_path -- path to main Thalassa sources catalog
+    user         -- user to own configuration catalog and files
+    """
+    package_path = "{}/ThalassaConfig".format(sources_path)
+    thalassa_config = CopyInstaller(name="Thalassa Config")
+    was_installed = thalassa_config.install(install_path=install_path,
+                                            sources_path=package_path,
+                                            user=user)
+    if not was_installed:
+        print("Warning: Thalassa Api was not installed")
+
+
+
+if __name__ == "__main__":
+    args = parse_arguments()
+
+    # First initialize installator logger
+    logging_dir = "/var/log/ThalassaInstall"
+    ensure_path_exists(logging_dir)
+
+    logger = InstallerLogger(logging_dir,
+                             logfile_level=args.log_level,
+                             stdout_level=args.stdout_level)
+
+    logger.info("Installer started.")
+
+    # Now check wheter installer has all it needs.
+    logger.info("Evaluating installation requirements...")
+    evaluation_table = [
+        Pip3Installer.are_requirements_met(),
+        CopyInstaller.are_requirements_met(),
+    ]
+
+    if not all(evaluation_table):
+        fail_installation()
+
+    # Load configuration file
+    try:
+        with open(args.conf, 'r') as conf_file:
+            config = yaml.load(conf_file)
+    except IOError as exception:
+        logger.error("Failed to load configuration!", exc_info=True)
+        fail_installation()
+
+    logger.info("Configuration loaded.")
+    logger.debug(config)
+
+    # Ensure logging path exists
+    ensure_path_exists(config['thalassa_path']['logs'], user=config['user'])
+    logger.info("Path for logs created: [{}]".format(config['thalassa_path']['logs']))
+
+    install_sqlite()
+
+    install_ThalassaCore(sources_path=config["sources"])
+
+    install_ThalassaConfig(install_path=config["thalassa_path"]["config"],
+                           sources_path=config["sources"],
+                           user=config["user"])
+
+    install_ThalassaApi(install_path=config["thalassa_path"]["api"],
+                        sources_path=config["sources"],
+                        user=config["user"])
+
+    initialize_database(config_path=config["thalassa_path"]["config"])

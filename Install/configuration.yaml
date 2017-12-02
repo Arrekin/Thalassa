@@ -4,7 +4,9 @@ sources: /mnt/d/Thalassa
 
 # Where to actualy build app
 thalassa_path:
-    api: /opt/Thalassa/ThalassaApi
+    api:    /opt/Thalassa/ThalassaApi
+    config: /etc/Thalassa
+    logs:   /var/log/Thalassa
 
 # Thalassa Apps user
 user: thalassa

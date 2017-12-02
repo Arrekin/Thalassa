@@ -1,0 +1,10 @@
+---
+# Place to store database
+db_store_path: /var/lib/Thalassa
+
+# Database name
+db_name: thalassa_database.db
+
+# Database owner
+user: thalassa
+...
