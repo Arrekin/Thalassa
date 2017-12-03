@@ -10,7 +10,10 @@ setup(
     description="TBD",
     url="https://github.com/Arrekin/Thalassa",
     author="Daniel Misior",
-    packages=["thalassa"],
+    packages=[
+        "thalassa",
+        "thalassa.database",
+        ],
     install_requires=[
         "Twisted",
         "sqlalchemy",
