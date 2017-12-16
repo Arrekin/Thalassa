@@ -1,0 +1,35 @@
+---
+# Look for python.logging module documentation for more info aobut its configuration
+
+version: 1
+disable_existing_loggers: True
+
+formatters:
+    single_line_formatter:
+        class: logging.Formatter
+        format: "%(asctime)-15s %(name)-8s %(levelname)-8s %(message)s"
+
+handlers:
+    console_handler:
+        level: DEBUG
+        class: logging.StreamHandler
+        formatter: single_line_formatter
+        stream: ext://sys.stdout
+    file_handler:
+        level: DEBUG
+        class: logging.handlers.WatchedFileHandler
+        filename: /var/log/thalassa/thalassa.log
+        formatter: single_line_formatter
+        mode: a
+        encoding: utf-8
+
+loggers:
+    thalassa_api:
+        level: DEBUG
+        propagate: True
+        handlers: [console_handler, file_handler]
+
+root:
+    handlers: [console_handler]
+    level: NOTSET
+...

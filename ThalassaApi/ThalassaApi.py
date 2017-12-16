@@ -5,6 +5,8 @@ from twisted.internet import reactor
 
 import cgi
 
+import thalassa.logging as logging
+
 class MainPageDispatcher(Resource):
 
     def getChild(self, name, request):
@@ -46,6 +48,9 @@ class Login(Resource):
 
         username = cgi.escape(str(request.args[b"username"][0]))
         password = cgi.escape(str(request.args[b"password"][0]))
+
+        logger = logging.get_logger("thalassa_api")
+        logger.info("Received logging request; User: {}, Password: {}".format(username, password))
 
         return bytes('<html><body>You submitted: {}--{}</body></html>'.format(username, password), encoding="utf-8")
 
