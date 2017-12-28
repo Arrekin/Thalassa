@@ -27,7 +27,7 @@ loggers:
     thalassa_api:
         level: DEBUG
         propagate: True
-        handlers: [console_handler, file_handler]
+        handlers: [file_handler]
 
 root:
     handlers: [console_handler]

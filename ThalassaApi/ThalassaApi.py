@@ -52,7 +52,12 @@ class Login(Resource):
         logger = logging.get_logger("thalassa_api")
         logger.info("Received logging request; User: {}, Password: {}".format(username, password))
 
-        return bytes('<html><body>You submitted: {}--{}</body></html>'.format(username, password), encoding="utf-8")
+        # TODO: Generate proper session hash and store it in redis
+        session_hash = "MAKeiTGEnerAtedlaTER"
+        request.args[b"session_hash"] = session_hash
+
+        return WorldDispatcher().render_GET(request)
+
 
 #resource = File('/tmp')
 root = MainPageDispatcher()

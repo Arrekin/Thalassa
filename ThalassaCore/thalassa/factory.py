@@ -1,2 +1,0 @@
-""" Thalassa factory module. """
-
