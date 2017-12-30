@@ -1,4 +1,6 @@
 """ Module with all kinds of players entities. """
+import thalassa.database.agent
+import thalassa.factory
 
 class Player:
     """ Base class for entities that can influence game progress. """
@@ -14,6 +16,34 @@ class ExternalPlayer(Player):
         session_hash (str):  Cached session stored in redis.
     """
 
-    def __init__(self, *,
-                 session_hash):
-        self.session_hash = session_hash  # Cached session stored in redis.
+    def __init__(self):
+        self.session_hash = None  # Cached session stored in redis.
+
+        my_agent_type = thalassa.database.agent.PlayerAgent
+        self.agent = thalassa.factory.Create(my_agent_type)
+
+
+    def is_authenticated(self):
+        """ Check whether player were authenticated. """
+
+        return self.session_hash is not None
+
+
+    def authenticate(self, *, session_hash=None, username=None, password=None):
+        """ Checks if provided credentials are valid.
+
+        Note:
+            Options are mutually exclusive. Provide username and password to log-in the player
+            or session_hash if player has already an active session.
+
+        Args:
+            session_hash (string): Hash generated when player was logging in.
+            username (string): Player's username.
+            password (string): Player's password.
+        """
+
+        if session_hash and (username or password):
+            raise TypeError("Mutually exclusive arguments")
+
+        if not any([session_hash, username, password]):
+            raise TypeError("Required arguments not provided")

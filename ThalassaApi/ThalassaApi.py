@@ -6,6 +6,8 @@ from twisted.internet import reactor
 import cgi
 
 import thalassa.logging as logging
+import thalassa.factory as factory
+import thalassa.player as player
 
 class MainPageDispatcher(Resource):
 
@@ -53,6 +55,10 @@ class Login(Resource):
         logger.info("Received logging request; User: {}, Password: {}".format(username, password))
 
         # TODO: Generate proper session hash and store it in redis
+        new_player = factory.Create(player.ExternalPlayer)
+        logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
+        new_player.authenticate(username=username, password=password)
+        logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
         session_hash = "MAKeiTGEnerAtedlaTER"
         request.args[b"session_hash"] = session_hash
 
@@ -63,6 +69,6 @@ class Login(Resource):
 root = MainPageDispatcher()
 root.putChild(b'world', WorldDispatcher())
 root.putChild(b'login', Login())
-factory = Site(root)
-reactor.listenTCP(8888, factory)
+twisted_factory = Site(root)
+reactor.listenTCP(8888, twisted_factory)
 reactor.run()
