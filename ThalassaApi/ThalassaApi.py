@@ -71,6 +71,7 @@ class Login(Resource):
 root = MainPageDispatcher()
 root.putChild(b'world', WorldDispatcher())
 root.putChild(b'login', Login())
+root.putChild(b'static', File('/opt/thalassa/ThalassaApi/static'))
 twisted_factory = Site(root)
 reactor.listenTCP(8888, twisted_factory)
 reactor.run()
