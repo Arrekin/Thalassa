@@ -1,4 +1,5 @@
 """ Thalassa factory module. """
+import thalassa.cache
 import thalassa.database.agent
 import thalassa.database.queries
 import thalassa.player
@@ -43,6 +44,8 @@ def SetReferences(new_references=None, *, replace=False):
             thalassa.player.ExternalPlayer: thalassa.player.ExternalPlayer,
             #    ---   thalassa.database.agents   ---    #
             thalassa.database.agent.PlayerAgent: thalassa.database.agent.PlayerAgent,
+            #    ---   thalassa.database.cache   ---    #
+            thalassa.cache.CacheService: thalassa.cache.CacheService,
         }
         return
 
