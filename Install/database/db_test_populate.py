@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from db_create import Base, User
+from thalassa.database.models import Base, User
 
 engine = create_engine('sqlite:////var/lib/thalassa/thalassa_database.db')
 

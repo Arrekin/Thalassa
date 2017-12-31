@@ -1,5 +1,6 @@
 """ Thalassa factory module. """
 import thalassa.database.agent
+import thalassa.database.queries
 import thalassa.player
 
 # Reference to all possible dependencies
@@ -16,6 +17,11 @@ def Create(object_type):
         SetReferences()
 
     return _reference_bank[object_type]()
+
+
+def CreateDatabaseSession():
+    """ Creates new SQLAlchemy session to the database. """
+    return thalassa.database.queries.DatabaseSessionManager().CreateNewSession()
 
 
 def SetReferences(new_references=None, *, replace=False):

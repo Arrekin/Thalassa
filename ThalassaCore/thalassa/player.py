@@ -1,6 +1,7 @@
 """ Module with all kinds of players entities. """
 import thalassa.database.agent
 import thalassa.factory
+import thalassa.logging
 
 class Player:
     """ Base class for entities that can influence game progress. """
@@ -45,5 +46,16 @@ class ExternalPlayer(Player):
         if session_hash and (username or password):
             raise TypeError("Mutually exclusive arguments")
 
-        if not any([session_hash, username, password]):
-            raise TypeError("Required arguments not provided")
+        # TODO:
+        if session_hash:
+            return
+
+        if username and password:
+            password_hash = self.agent.get_password_hash(username=username)
+            logger = thalassa.logging.get_logger("thalassa_api")
+            logger.debug("User's password hash is: "+str(password_hash))
+            if password_hash is not None:
+                self.session_hash = "MAKeiTGEnerAtedlaTER"
+            return
+
+        raise TypeError("Required arguments not provided")

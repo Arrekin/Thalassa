@@ -48,8 +48,8 @@ class Login(Resource):
         if b"username" not in request.args or b"password" not in request.args:
             return self.render_GET(request)
 
-        username = cgi.escape(str(request.args[b"username"][0]))
-        password = cgi.escape(str(request.args[b"password"][0]))
+        username = cgi.escape(str(request.args[b"username"][0], 'utf-8'))
+        password = cgi.escape(str(request.args[b"password"][0], 'utf-8'))
 
         logger = logging.get_logger("thalassa_api")
         logger.info("Received logging request; User: {}, Password: {}".format(username, password))
@@ -59,8 +59,10 @@ class Login(Resource):
         logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
         new_player.authenticate(username=username, password=password)
         logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
-        session_hash = "MAKeiTGEnerAtedlaTER"
-        request.args[b"session_hash"] = session_hash
+        if new_player.session_hash is None:
+            return self.render_GET(request)
+
+        request.args[b"session_hash"] = new_player.session_hash
 
         return WorldDispatcher().render_GET(request)
 
