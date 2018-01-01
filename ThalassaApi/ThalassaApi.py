@@ -21,7 +21,6 @@ class MainPageDispatcher(Resource):
 
 
 class WorldDispatcher(Resource):
-    isLeaf = True
 
     def getChild(self, name, request):
         if name == '':
@@ -33,6 +32,18 @@ class WorldDispatcher(Resource):
             data = file_stream.read()
         request.setHeader(b"content-type", b"text/html")
         return data
+
+
+class WorldData(Resource):
+    isLeaf = True
+
+    def getChild(self, name, request):
+        if name == '':
+            return self
+        return Resource.getChild(self, name, request)
+    
+    def render_GET(self, request):
+        return b'you requested world data!'
 
 class Login(Resource):
     isLeaf = True
@@ -69,7 +80,9 @@ class Login(Resource):
 
 #resource = File('/tmp')
 root = MainPageDispatcher()
-root.putChild(b'world', WorldDispatcher())
+world = WorldDispatcher()
+root.putChild(b'world', world)
+world.putChild(b'data', WorldData())
 root.putChild(b'login', Login())
 root.putChild(b'static', File('/opt/thalassa/ThalassaApi/static'))
 twisted_factory = Site(root)
