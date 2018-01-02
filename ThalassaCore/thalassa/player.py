@@ -42,7 +42,6 @@ class ExternalPlayer(Player):
             username (string): Player's username.
             password (string): Player's password.
         """
-
         if session_hash and (username or password):
             raise TypeError("Mutually exclusive arguments")
 
@@ -53,9 +52,9 @@ class ExternalPlayer(Player):
         if username and password:
             password_hash = self.agent.get_password_hash(username=username)
             logger = thalassa.logging.get_logger("thalassa_api")
-            logger.debug("User's password hash is: "+str(password_hash))
+            logger.debug("-> User's password hash is: "+str(password_hash))
             if password_hash is not None:
-                self.session_hash = "MAKeiTGEnerAtedlaTER"
+                self.session_hash = b"MAKeiTGEnerAtedlaTER"
             return
 
         raise TypeError("Required arguments not provided")
