@@ -6,19 +6,17 @@ $(function () {
 
     PIXI.utils.sayHello(type)
 
-    //Aliases
-    Application = PIXI.Application;
-    loader = PIXI.loader;
-    resources = PIXI.loader.resources;
-    Sprite = PIXI.Sprite;
-
     //Create a Pixi Application
-    Thalassa = new Application({
+    Thalassa = new PIXI.Application({
         width: 1024,
         height: 1024,
         antialias: true,
         transparent: false,
     });
+
+    //Aliases
+    Thalassa.resources = PIXI.loader.resources;
+    Sprite = PIXI.Sprite;
 
     Thalassa.renderer.backgroundColor = 0xb7c0d3;
     Thalassa.renderer.view.style.position = "absolute";
@@ -30,15 +28,13 @@ $(function () {
     document.body.appendChild(Thalassa.view);
 
     // Load all the resources
-    loader
+    PIXI.loader
         .add("static/images/island_icon.png")
         .load(OnGameLoaded);
 })
 
 function OnGameLoaded() {
 
-    Thalassa.worldModel = new WorldModel();
-    Thalassa.worldView = new WorldView(Thalassa.worldModel);
-    let island1 = new Sprite(resources["static/images/island_icon.png"].texture);
-    Thalassa.stage.addChild(island1);
+    Thalassa.worldModel = new WorldModel(Thalassa);
+    Thalassa.worldView = new WorldView(Thalassa);
 }

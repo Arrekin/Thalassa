@@ -1,5 +1,7 @@
-var WorldModel = function () {
-    this.island = null;
+var WorldModel = function (thalassa) {
+    this.thalssa = thalassa;
+
+    this.islands = null;
 
     // Events handlers
     this.islandsDataChangedEvent = new ThalassaEvent(this);
@@ -16,12 +18,12 @@ WorldModel.prototype = {
             let data = JSON.parse(raw_data)
 
             // Load islands data
-            this.island = {}
+            this.islands = {}
             for (let i = 0; i < data.islands.length; ++i) {
                 let current_island = data.islands[i];
-                this.island[current_island.id] = current_island;
+                this.islands[current_island.id] = current_island;
             }
-            alert(JSON.stringify(this.island, null, 4))
+            alert(JSON.stringify(this.islands, null, 4))
             this.islandsDataChangedEvent.notify();
 
         });
