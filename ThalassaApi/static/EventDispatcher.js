@@ -1,9 +1,9 @@
-var Event = function (sender) {
+var ThalassaEvent = function (sender) {
     this._sender = sender;
     this._listeners = [];
 }
 
-Event.prototype = {
+ThalassaEvent.prototype = {
 
     attach: function (listener) {
         this._listeners.push(listener);

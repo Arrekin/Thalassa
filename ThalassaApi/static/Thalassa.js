@@ -36,6 +36,9 @@ $(function () {
 })
 
 function OnGameLoaded() {
+
+    Thalassa.worldModel = new WorldModel();
+    Thalassa.worldView = new WorldView(Thalassa.worldModel);
     let island1 = new Sprite(resources["static/images/island_icon.png"].texture);
     Thalassa.stage.addChild(island1);
 }
