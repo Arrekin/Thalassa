@@ -24,16 +24,20 @@ WorldIslandView.prototype = {
 	},
 
 	Render: function () {
-		let thalassa = this.worldView.thalassa;
 		if (this.sprite == null) {
-			this.sprite = new Sprite(thalassa.resources["static/images/island_icon.png"].texture);
-			this.sprite.scale.x = 0.1;
-			this.sprite.scale.y = 0.1;
-			thalassa.stage.addChild(this.sprite);
+		    this._CreateSprite();
 		}
 
 		this.sprite.x = this.x;
 		this.sprite.y = this.y;
+	},
+
+	_CreateSprite: function () {
+	    let thalassa = this.worldView.thalassa;
+	    this.sprite = new Sprite(thalassa.resources["static/images/island_icon.png"].texture);
+	    this.sprite.scale.x = 0.1;
+	    this.sprite.scale.y = 0.1;
+	    this.worldView.RegisterSprite(this.sprite);
 	}
 }
 
@@ -66,5 +70,9 @@ WorldView.prototype = {
 				this.islands[islandId].UpdateData();
 			}
 		}
+	},
+
+	RegisterSprite: function (sprite) {
+	    this.thalassa.stage.addChild(sprite);
 	}
 }
