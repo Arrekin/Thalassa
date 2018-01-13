@@ -2,7 +2,7 @@
 import thalassa.cache
 import thalassa.database.agent
 import thalassa.database.queries
-import thalassa.player
+import thalassa.players
 
 # Reference to all possible dependencies
 _reference_bank = None
@@ -41,7 +41,7 @@ def SetReferences(new_references=None, *, replace=False):
         # Set default references
         _reference_bank = {
             #    ---   thalassa.player   ---    #
-            thalassa.player.ExternalPlayer: thalassa.player.ExternalPlayer,
+            thalassa.players.ExternalPlayer: thalassa.players.ExternalPlayer,
             #    ---   thalassa.database.agents   ---    #
             thalassa.database.agent.PlayerAgent: thalassa.database.agent.PlayerAgent,
             #    ---   thalassa.database.cache   ---    #

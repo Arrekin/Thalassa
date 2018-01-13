@@ -1,11 +1,18 @@
 """ Module with all kinds of players entities. """
+import thalassa.cache
 import thalassa.database.agent
 import thalassa.factory
 import thalassa.logging
 
 class Player:
     """ Base class for entities that can influence game progress. """
-    pass
+
+    def get_full_world_data(self):
+        """ Retrieve data about the world accessible to the player. """
+
+        world_agent = thalassa.database.agent.WorldAgent()
+        return world_agent.get_islands()
+
 
 class ExternalPlayer(Player):
     """ Process commands from entities that using Thalassa Api to access game world. 
@@ -45,8 +52,14 @@ class ExternalPlayer(Player):
         if session_hash and (username or password):
             raise TypeError("Mutually exclusive arguments")
 
-        # TODO:
+        cache_service = thalassa.factory.Create(thalassa.cache.CacheService)
+
         if session_hash:
+            try:
+                session_data = cache_service.GetPlayerSession(session_hash=session_hash)
+                self.session_hash = session_hash
+            except thalassa.cache.PlayerSessionError:
+                self.session_hash = None
             return
 
         if username and password:
@@ -55,6 +68,8 @@ class ExternalPlayer(Player):
             logger.debug("-> User's password hash is: "+str(password_hash))
             if password_hash is not None:
                 self.session_hash = b"MAKeiTGEnerAtedlaTER"
+                cache_service.SetPlayerSession(session_hash=self.session_hash,
+                                               session_data=username)
             return
 
         raise TypeError("Required arguments not provided")

@@ -7,7 +7,7 @@ import cgi
 
 import thalassa.logging as logging
 import thalassa.factory as factory
-import thalassa.player as player
+import thalassa.players as players
 
 
 class ThalassaTwistedResource(Resource):
@@ -66,10 +66,20 @@ class WorldData(ThalassaTwistedResource):
     
     def render_GET(self, request):
         self.logger.info("WORLD data request")
-        import thalassa.database.agent as agent
-        a = agent.WorldAgent().get_islands()
-        return bytes(a.to_json(), "utf-8")
-        return b'{"islands":[{"id":"afsfsaf", "name":"Otta", "x":200, "y":300}, {"id":"sadsad", "name":"Alda", "x":500, "y":100}]}'
+        threads.deferToThread(self.__gather_full_world_data, request=request)
+        return NOT_DONE_YET
+
+    def __gather_full_world_data(self, request):
+        """ Return data required to display world view. """
+        self.logger.info("WORLD data request")
+        player = factory.Create(players.ExternalPlayer)
+        player.authenticate(session_hash=request.getCookie(b'session_hash'))
+        if not player.is_authenticated():
+            request.setResponseCode(401)
+            request.finish()
+            return
+        request.write(bytes(player.get_full_world_data().to_json(), "utf-8"))
+        request.finish()
 
 class Login(ThalassaTwistedResource):
     isLeaf = True
@@ -97,7 +107,7 @@ class Login(ThalassaTwistedResource):
         self.logger.info("LOGIN request; User: {}, Password: {}".format(username, password))
 
         # TODO: Generate proper session hash and store it in redis
-        new_player = factory.Create(player.ExternalPlayer)
+        new_player = factory.Create(players.ExternalPlayer)
         self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
         new_player.authenticate(username=username, password=password)
         self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))

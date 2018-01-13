@@ -18,7 +18,6 @@ class IslandsContainer(ThalassaObjectsContainer):
 
         try:
             for island in initial_object:
-                print("Adding: "+ str(island.__dict__))
                 self.add(island)
         except TypeError:
             self.add(initial_object)
