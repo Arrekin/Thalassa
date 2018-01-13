@@ -58,7 +58,7 @@ WorldView.prototype = {
 	},
 
 	OnIslandsDataChanged: function () {
-		alert("New islands data!");
+		//alert("New islands data!");
 		let islandsModels = this.GetWorldModel().islands;
 		for (var islandId in islandsModels) {
 			if (islandsModels.hasOwnProperty(islandId)) {

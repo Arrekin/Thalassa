@@ -66,6 +66,9 @@ class WorldData(ThalassaTwistedResource):
     
     def render_GET(self, request):
         self.logger.info("WORLD data request")
+        import thalassa.database.agent as agent
+        a = agent.WorldAgent().get_islands()
+        return bytes(a.to_json(), "utf-8")
         return b'{"islands":[{"id":"afsfsaf", "name":"Otta", "x":200, "y":300}, {"id":"sadsad", "name":"Alda", "x":500, "y":100}]}'
 
 class Login(ThalassaTwistedResource):

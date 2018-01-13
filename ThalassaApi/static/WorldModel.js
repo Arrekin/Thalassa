@@ -23,7 +23,7 @@ WorldModel.prototype = {
                 let current_island = data.islands[i];
                 this.islands[current_island.id] = current_island;
             }
-            alert(JSON.stringify(this.islands, null, 4))
+            //alert(JSON.stringify(this.islands, null, 4))
             this.islandsDataChangedEvent.notify();
 
         });

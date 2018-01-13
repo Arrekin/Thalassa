@@ -1,5 +1,6 @@
 """ Thalassa agents extracting data from database. """
-from thalassa.database.models import User
+from thalassa.database.models import Island, User
+import thalassa.container
 import thalassa.factory
 
 class Agent:
@@ -22,5 +23,18 @@ class PlayerAgent(Agent):
                 return None
             password_hash, = result
             return password_hash
+        finally:
+            session.close()
+
+
+class WorldAgent(Agent):
+    """ Class for extracting world data from database. """
+
+    def get_islands(self):
+        """ Return Islands container object with all islands. """
+        session = thalassa.factory.CreateDatabaseSession()
+        try:
+            result = session.query(Island)
+            return thalassa.container.IslandsContainer(result)
         finally:
             session.close()
