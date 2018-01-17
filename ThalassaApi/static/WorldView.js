@@ -41,14 +41,71 @@ WorldIslandView.prototype = {
 	}
 }
 
+var WorldFleetView = function (id, worldView) {
+    this.id = id;
+    this.worldView = worldView;
+
+    // Model data
+    this.owner = null;
+    this.verticalSpeed = null;
+    this.horizontalSpeed = null;
+    this.modelX = null;
+    this.modelY = null;
+    this.timestamp = null;
+
+    // View data
+    this.x = null;
+    this.y = null;
+    this.sprite = null;
+}
+
+WorldFleetView.prototype = {
+
+    UpdateData: function () {
+        let model = this.worldView.GetWorldModel();
+        fleetModel = model.fleets[this.id];
+        this.owner = fleetModel.owner;
+        this.horizontalSpeed = fleetModel.horizontalSpeed;
+        this.verticalSpeed = fleetModel.verticalSpeed;
+        this.modelX = fleetModel.x;
+        this.modelY = fleetModel.y;
+        this.timestamp = fleetModel.timestamp;
+
+        this.Render();
+    },
+
+    Render: function () {
+        if (this.sprite == null) {
+            this._CreateSprite();
+        }
+
+        let timeElapsed = this.worldView.thalassa.timestamp - this.timestamp;
+        this.sprite.x = this.modelX + timeElapsed*this.verticalSpeed;
+        this.sprite.y = this.modelY + timeElapsed*this.horizontalSpeed;
+        this.sprite.rotation = Math.atan2(this.sprite.x, this.sprite.y);
+    },
+
+    _CreateSprite: function () {
+        this.sprite = new PIXI.Graphics();
+        this.sprite.beginFill(0xFFFFFF);
+        this.sprite.drawRect(0, 0, 32, 8);
+        this.sprite.endFill();
+        this.worldView.RegisterSprite(this.sprite);
+    }
+}
+
 var WorldView = function (thalassaApp) {
 
 	this.thalassa = thalassaApp;
 
 	this.islands = {};
+	this.fleets = {};
 
 	this.islandsDataChangedHandler = this.OnIslandsDataChanged.bind(this);
 	this.GetWorldModel().islandsDataChangedEvent.attach(this.islandsDataChangedHandler);
+
+	this.fleetsDataChangedHandler = this.OnFleetsDataChanged.bind(this);
+	this.GetWorldModel().fleetsDataChangedEvent.attach(this.fleetsDataChangedHandler);
 }
 
 WorldView.prototype = {
@@ -58,7 +115,6 @@ WorldView.prototype = {
 	},
 
 	OnIslandsDataChanged: function () {
-		//alert("New islands data!");
 		let islandsModels = this.GetWorldModel().islands;
 		for (var islandId in islandsModels) {
 			if (islandsModels.hasOwnProperty(islandId)) {
@@ -72,7 +128,30 @@ WorldView.prototype = {
 		}
 	},
 
+	OnFleetsDataChanged: function () {
+	    let fleetsModels = this.GetWorldModel().fleets;
+	    for (var fleetId in fleetsModels) {
+	        if (fleetsModels.hasOwnProperty(fleetId)) {
+	            if (!this.fleets.hasOwnProperty(fleetId)) {
+	                // This island do not exist in the view. Add it.
+	                this.fleets[fleetId] = new WorldFleetView(fleetId, this);
+	            }
+	            // Let the island view update itself
+	            this.fleets[fleetId].UpdateData();
+	        }
+	    }
+	},
+
 	RegisterSprite: function (sprite) {
 	    this.thalassa.stage.addChild(sprite);
+	},
+
+	Update: function () {
+	    for (var fleetId in this.fleets) {
+	        if (this.fleets.hasOwnProperty(fleetId)) {
+	            fleet = this.fleets[fleetId];
+	            fleet.Render();
+	        }
+	    }
 	}
 }

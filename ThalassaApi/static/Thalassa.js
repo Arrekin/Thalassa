@@ -34,7 +34,17 @@ $(function () {
 })
 
 function OnGameLoaded() {
+    Thalassa.delta = 0;
+    Thalassa.timestamp = Date.now() / 1000;
 
     Thalassa.worldModel = new WorldModel(Thalassa);
     Thalassa.worldView = new WorldView(Thalassa);
+
+    Thalassa.ticker.add(delta => OnGameStep(delta));
+}
+
+function OnGameStep(delta) {
+    Thalassa.delta = delta;
+    Thalassa.timestamp = Date.now() / 1000;
+    Thalassa.worldView.Update();
 }

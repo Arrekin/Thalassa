@@ -40,7 +40,9 @@ class IslandsContainer(ThalassaObjectsContainer):
                 Otherwise returns fragment that can be treated as part of JSON object.
         """
         islands_list = [island.as_dict() for island in self.__container.values()]
-        json_dict = {"islands": islands_list}
+        import time
+        fleets = [{"id":"1", "owner":"blblb", "x":200, "y":200, "horizontalSpeed":1, "verticalSpeed":1, "timestamp": int(time.time())}]
+        json_dict = {"islands": islands_list, "fleets": fleets}
         json_body = json.dumps(json_dict)
 
         return json_body

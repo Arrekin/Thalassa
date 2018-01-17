@@ -26,3 +26,10 @@ class Island(Base):
     def as_dict(self):
        """ Return Island data as dict. """
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Fleet(Base):
+    __tablename__ = 'fleet'
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('user.id'))
+    state = Column(Integer, nullable=False)
