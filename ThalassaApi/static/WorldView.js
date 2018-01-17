@@ -80,9 +80,9 @@ WorldFleetView.prototype = {
         }
 
         let timeElapsed = this.worldView.thalassa.timestamp - this.timestamp;
-        this.sprite.x = this.modelX + timeElapsed*this.verticalSpeed;
-        this.sprite.y = this.modelY + timeElapsed*this.horizontalSpeed;
-        this.sprite.rotation = Math.atan2(this.sprite.x, this.sprite.y);
+        this.sprite.x = this.modelX + timeElapsed * this.horizontalSpeed;
+        this.sprite.y = this.modelY + timeElapsed * this.verticalSpeed;
+        this.sprite.rotation = Math.atan2(this.modelY, this.modelX);
     },
 
     _CreateSprite: function () {
