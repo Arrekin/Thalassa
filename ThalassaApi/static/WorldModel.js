@@ -24,12 +24,14 @@ WorldModel.prototype = {
                 this.islands = {}
                 for (let i = 0; i < data.islands.length; ++i) {
                     let current_island = data.islands[i];
+                    current_island.id = String(current_island.id)
                     this.islands[current_island.id] = current_island;
                 }
                 // Load fleets data
                 this.fleets = {}
                 for (let i = 0; i < data.fleets.length; ++i) {
                     let current_fleet = data.fleets[i];
+                    current_fleet.id = String(current_fleet.id)
                     this.fleets[current_fleet.id] = current_fleet;
                 }
                 //alert(JSON.stringify(this.fleets, null, 4)+ (Date.now()/1000))

@@ -42,9 +42,9 @@ class IslandsContainer(ThalassaObjectsContainer):
         islands_list = [island.as_dict() for island in self.__container.values()]
         import time
         fleets = [
-            {"id":"1", "owner":"blblb", "x":200, "y":200, "horizontalSpeed":10, "verticalSpeed":10, "timestamp": int(time.time())},
-            {"id":"2", "owner":"blblb", "x":500, "y":300, "horizontalSpeed":20, "verticalSpeed":1, "timestamp": int(time.time())},
-            {"id":"3", "owner":"blblb", "x":700, "y":700, "horizontalSpeed":-10, "verticalSpeed":-10, "timestamp": int(time.time())}
+            {"id":1, "owner":"blblb", "x":200, "y":200, "horizontalSpeed":10, "verticalSpeed":10, "timestamp": int(time.time())},
+            {"id":2, "owner":"blblb", "x":500, "y":300, "horizontalSpeed":20, "verticalSpeed":1, "timestamp": int(time.time())},
+            {"id":3, "owner":"blblb", "x":700, "y":700, "horizontalSpeed":-10, "verticalSpeed":-10, "timestamp": int(time.time())}
             ]
         json_dict = {"islands": islands_list, "fleets": fleets}
         json_body = json.dumps(json_dict)
