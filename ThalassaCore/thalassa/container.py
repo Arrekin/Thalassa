@@ -1,20 +1,18 @@
 """ Containers to store game objects. """
-import json
+import math
 
 import thalassa.database.models
 
 class ThalassaObjectsContainer:
-    """ Base class for Thalassa objects containers. """
+    """ Base class for Thalassa objects containers.
 
-    def to_json(self, *, standalone=True):
-        raise NotImplementedError("This is to_json() ThalassaObjectContainer method. Implement it...")
+    Args:
+        initial_object(any): If iterable add all objects that are inside,
+            otherwise add the object itself.
+    """
 
-
-class IslandsContainer(ThalassaObjectsContainer):
-    """ Holds islands objects. """
-
-    def __init__(self, initial_object=None):
-        self.__container = {}
+    def __init__(self, initial_object):
+        self.container = {}
 
         try:
             for island in initial_object:
@@ -23,23 +21,30 @@ class IslandsContainer(ThalassaObjectsContainer):
             self.add(initial_object)
 
 
-    def add(self, island):
-        """ Add island to the container.
-        
-        Args:
-            island(thalassa.databe.models): Object to be added to the container.
-        """
-        self.__container[island.name] = island
+    def __iter__(self):
+        return self.container
 
 
-    def to_json(self, *, standalone=True):
-        """ Convert container to JSON.
+    def add(self, object_to_add):
+        """ Add an object to the container.
         
         Args:
-            standalone(bool): When set to true function returns fully valid JSON.
-                Otherwise returns fragment that can be treated as part of JSON object.
+            object_to_add(thalassa.databe.models): Object to be added to the container.
         """
-        islands_list = [island.as_dict() for island in self.__container.values()]
+        self.container[object_to_add.id] = object_to_add
+
+
+    def to_jsonready_dict(self):
+        """ Convert container to dict that is ready to be converted into JSON. """
+        raise NotImplementedError("This is to_json() ThalassaObjectContainer method.")
+
+
+class IslandsContainer(ThalassaObjectsContainer):
+    """ Holds islands objects. """
+
+    def to_jsonready_dict(self):
+        """ Convert container to dict that is ready to be converted into JSON. """
+        islands_list = [island.as_dict() for island in self.container.values()]
         import time
         fleets = [
             {"id":1, "owner":"blblb", "x":200, "y":200, "horizontalSpeed":10, "verticalSpeed":10, "timestamp": int(time.time())},
@@ -47,6 +52,34 @@ class IslandsContainer(ThalassaObjectsContainer):
             {"id":3, "owner":"blblb", "x":700, "y":700, "horizontalSpeed":-10, "verticalSpeed":-10, "timestamp": int(time.time())}
             ]
         json_dict = {"islands": islands_list, "fleets": fleets}
-        json_body = json.dumps(json_dict)
 
-        return json_body
+        return json_dict
+
+
+class FleetsContainer(ThalassaObjectsContainer):
+    """ Holds fleets objects. """
+
+    def to_jsonready_dict(self):
+        """ Convert container to dict that is ready to be converted into JSON. """
+        fleets = []
+        for fleet in self.container.values():
+            new_fleet = {
+                "id": fleet.id,
+                "owner_id": fleet.owner_id,
+                "x": fleet.position_x,
+                "y": fleet.position_y,
+                "timestamp": fleet.position_timestamp,
+                }
+            if not fleet.journeys:
+                new_fleet['horizontal_speed'] = 0
+                new_fleet['vertical_speed'] = 0
+            else:
+                curr_journey = min(fleet.journeys, key=lambda journey: journey.arrival_time)
+                time_diff = curr_journey.arrival_time - fleet.position_timestamp
+                new_fleet['horizontal_speed'] = time_diff / abs(fleet.position_x - curr_journey.target_x)
+                new_fleet['vertical_speed'] = time_diff / abs(fleet.position_x - curr_journey.target_x)
+            fleets.append(new_fleet)
+
+        json_dict = {"fleets": fleets}
+
+        return json_dict

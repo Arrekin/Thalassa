@@ -8,27 +8,32 @@ class Player:
     """ Base class for entities that can influence game progress. """
 
     def get_full_world_data(self):
-        """ Retrieve data about the world accessible to the player. """
+        """ Retrieve data about the world accessible to the player. 
+            Return [IslandsContainer, FleetsContainer]"""
 
         world_agent = thalassa.database.agent.WorldAgent()
-        return world_agent.get_islands()
+        world_islands = world_agent.get_islands()
+        world_fleets = world_agent.get_fleets(on_sea=True, at_port=False)
+
+        return world_islands, world_fleets
 
 
 class ExternalPlayer(Player):
     """ Process commands from entities that using Thalassa Api to access game world. 
-    
+
     Args:
         session_hash (str):  Cached session stored in redis.
 
     Attributes:
         session_hash (str):  Cached session stored in redis.
     """
+    __agent_type = thalassa.database.agent.PlayerAgent
 
     def __init__(self):
         self.session_hash = None  # Cached session stored in redis.
+        self.user_id = None # User id in database
 
-        my_agent_type = thalassa.database.agent.PlayerAgent
-        self.agent = thalassa.factory.Create(my_agent_type)
+        self.agent = thalassa.factory.Create(self.__class__.__agent_type)
 
 
     def is_authenticated(self):
@@ -58,18 +63,19 @@ class ExternalPlayer(Player):
             try:
                 session_data = cache_service.GetPlayerSession(session_hash=session_hash)
                 self.session_hash = session_hash
+                self.user_id = session_data
             except thalassa.cache.PlayerSessionError:
                 self.session_hash = None
             return
 
         if username and password:
-            password_hash = self.agent.get_password_hash(username=username)
+            user = self.agent.get_user(username=username)
             logger = thalassa.logging.get_logger("thalassa_api")
-            logger.debug("-> User's password hash is: "+str(password_hash))
-            if password_hash is not None:
+            logger.debug("-> User's data loaded: "+str("None" if not user else user.as_dict()))
+            if user.password_hash is not None:
                 self.session_hash = b"MAKeiTGEnerAtedlaTER"
                 cache_service.SetPlayerSession(session_hash=self.session_hash,
-                                               session_data=username)
+                                               session_data=user.id)
             return
 
         raise TypeError("Required arguments not provided")

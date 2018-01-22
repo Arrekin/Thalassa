@@ -4,6 +4,7 @@ from twisted.web.resource import Resource
 from twisted.internet import reactor, threads
 
 import cgi
+import json
 
 import thalassa.logging as logging
 import thalassa.factory as factory
@@ -71,15 +72,25 @@ class WorldData(ThalassaTwistedResource):
 
     def __gather_full_world_data(self, request):
         """ Return data required to display world view. """
-        self.logger.info("WORLD data request")
-        player = factory.Create(players.ExternalPlayer)
-        player.authenticate(session_hash=request.getCookie(b'session_hash'))
-        if not player.is_authenticated():
-            request.setResponseCode(401)
+        try:
+            self.logger.info("WORLD data request")
+            player = factory.Create(players.ExternalPlayer)
+            player.authenticate(session_hash=request.getCookie(b'session_hash'))
+            if not player.is_authenticated():
+                request.setResponseCode(401)
+                request.finish()
+                return
+
+            world_islands, world_fleets = player.get_full_world_data()
+            full_data = {**world_islands.to_jsonready_dict(), **world_fleets.to_jsonready_dict()}
+            request.write(bytes(json.dumps(full_data), "utf-8"))
             request.finish()
-            return
-        request.write(bytes(player.get_full_world_data().to_json(), "utf-8"))
-        request.finish()
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            request.setResponseCode(500)
+            request.finish()
+
 
 class Login(ThalassaTwistedResource):
     isLeaf = True
@@ -101,22 +112,27 @@ class Login(ThalassaTwistedResource):
 
 
     def __authenticate_user(self, request):
+        try:
+            username = cgi.escape(str(request.args[b"username"][0], 'utf-8'))
+            password = cgi.escape(str(request.args[b"password"][0], 'utf-8'))
+            self.logger.info("LOGIN request; User: {}, Password: {}".format(username, password))
 
-        username = cgi.escape(str(request.args[b"username"][0], 'utf-8'))
-        password = cgi.escape(str(request.args[b"password"][0], 'utf-8'))
-        self.logger.info("LOGIN request; User: {}, Password: {}".format(username, password))
+            # TODO: Generate proper session hash and store it in redis
+            new_player = factory.Create(players.ExternalPlayer)
+            self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
+            new_player.authenticate(username=username, password=password)
+            self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
+            if new_player.session_hash is None:
+                return self.render_GET(request)
 
-        # TODO: Generate proper session hash and store it in redis
-        new_player = factory.Create(players.ExternalPlayer)
-        self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
-        new_player.authenticate(username=username, password=password)
-        self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
-        if new_player.session_hash is None:
-            return self.render_GET(request)
-
-        request.addCookie(b'session_hash', new_player.session_hash)
-        request.redirect(b'world')
-        request.finish()
+            request.addCookie(b'session_hash', new_player.session_hash)
+            request.redirect(b'world')
+            request.finish()
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            request.setResponseCode(500)
+            request.finish()
 
 
 #resource = File('/tmp')

@@ -3,6 +3,10 @@ import datetime
 
 from sqlalchemy import CHAR, Column, DateTime, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+
+FLEET_AT_THE_PORT = 0
+FLEET_ON_THE_SEA = 1
 
 Base = declarative_base()
 
@@ -22,6 +26,8 @@ class User(Base, ThalassaModel):
     email = Column(String(64), nullable=False)
     creation_date = Column(DateTime, default=datetime.datetime.utcnow)
 
+    fleets = relationship('Fleet', back_populates='owner')
+
 
 class Island(Base, ThalassaModel):
     __tablename__ = 'island'
@@ -34,19 +40,26 @@ class Island(Base, ThalassaModel):
 class Fleet(Base, ThalassaModel):
     __tablename__ = 'fleet'
     id = Column(Integer, primary_key=True)
-    owner = Column(Integer, ForeignKey('user.id'))
-    state = Column(Integer, nullable=False)
+    owner_id = Column(Integer, ForeignKey('user.id'))
+    # Current fleet status:
+    # 0 - At port
+    # 1 - On the sea
+    status = Column(Integer, nullable=False)
     # The x & y positions represents the last reached location at the time
-    # given in timestamp
+    # given in the timestamp
     position_x = Column(Integer, nullable=False)
     position_y = Column(Integer, nullable=False)
-    position_timestamp = Column(TIMESTAMP, nullable=False)
+    position_timestamp = Column(Integer, nullable=False)
 
+    owner = relationship('User', back_populates='fleets')
+    journeys = relationship('FleetJourney', back_populates='fleet')
 
 class FleetJourney(Base, ThalassaModel):
     __tablename__ = 'fleet_journey'
     id = Column(Integer, primary_key=True)
-    fleet = Column(Integer,  ForeignKey('fleet.id'))
+    fleet_id = Column(Integer,  ForeignKey('fleet.id'))
     target_x = Column(Integer, nullable=False)
     target_y = Column(Integer, nullable=False)
-    arrival_time = Column(TIMESTAMP, nullable=False)
+    arrival_time = Column(Integer, nullable=False)
+
+    fleet = relationship('Fleet', back_populates='journeys')
