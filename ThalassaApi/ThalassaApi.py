@@ -66,7 +66,6 @@ class WorldData(ThalassaTwistedResource):
         return Resource.getChild(self, name, request)
     
     def render_GET(self, request):
-        self.logger.info("WORLD data request")
         threads.deferToThread(self.__gather_full_world_data, request=request)
         return NOT_DONE_YET
 

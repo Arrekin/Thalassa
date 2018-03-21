@@ -22,7 +22,7 @@ class ThalassaObjectsContainer:
 
 
     def __iter__(self):
-        return self.container
+        return iter(self.container.values())
 
 
     def add(self, object_to_add):

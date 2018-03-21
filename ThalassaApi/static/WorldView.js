@@ -65,12 +65,11 @@ WorldFleetView.prototype = {
         let model = this.worldView.GetWorldModel();
         fleetModel = model.fleets[this.id];
         this.owner = fleetModel.owner;
-        this.horizontalSpeed = fleetModel.horizontalSpeed;
-        this.verticalSpeed = fleetModel.verticalSpeed;
+        this.horizontalSpeed = fleetModel.horizontal_speed;
+        this.verticalSpeed = fleetModel.vertical_speed;
         this.modelX = fleetModel.x;
         this.modelY = fleetModel.y;
         this.timestamp = fleetModel.timestamp;
-
         this.Render();
     },
 
@@ -120,7 +119,7 @@ WorldView.prototype = {
 			if (islandsModels.hasOwnProperty(islandId)) {
 				if (!this.islands.hasOwnProperty(islandId)) {
 					// This island do not exist in the view. Add it.
-					this.islands[islandId] = new WorldIslandView(islandId, this);
+                    this.islands[islandId] = new WorldIslandView(islandId, this);
 				}
 				// Let the island view update itself
 				this.islands[islandId].UpdateData();
