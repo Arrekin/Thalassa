@@ -44,6 +44,7 @@ def SetReferences(new_references=None, *, replace=False):
             thalassa.players.ExternalPlayer: thalassa.players.ExternalPlayer,
             #    ---   thalassa.database.agents   ---    #
             thalassa.database.agent.PlayerAgent: thalassa.database.agent.PlayerAgent,
+            thalassa.database.agent.WorldAgent:  thalassa.database.agent.WorldAgent,
             #    ---   thalassa.database.cache   ---    #
             thalassa.cache.CacheService: thalassa.cache.CacheService,
         }
