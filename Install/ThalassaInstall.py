@@ -303,7 +303,7 @@ class CopyInstaller():
 
 
 def install_sqlite():
-    """ Installs sqlite3. """
+    """ Install sqlite3. """
     sqlite = AptInstaller("sqlite3")
     was_installed = sqlite.install(force_reinstall=False)
     if not was_installed:
@@ -313,6 +313,14 @@ def install_sqlite():
     was_installed = libsqlite.install(force_reinstall=False)
     if not was_installed:
         print("Warning: libsqlite3-dev was not installed")
+
+
+def install_beanstalkd():
+    """ Install beanstalkd. """
+    beanstalk = AptInstaller("beanstalkd")
+    was_installed = beanstalk.install(force_reinstall=False)
+    if not was_installed:
+        print("Warning: beanstalkd was not installed")
 
 
 def initialize_database(*, config_path):
@@ -421,6 +429,7 @@ if __name__ == "__main__":
     logger.info("Path for logs created: [{}]".format(config['thalassa_path']['logs']))
 
     install_sqlite()
+    install_beanstalkd()
 
     install_ThalassaCore(sources_path=config["sources"])
 

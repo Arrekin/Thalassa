@@ -17,5 +17,6 @@ setup(
     install_requires=[
         "Twisted",
         "sqlalchemy",
+        "beanstalkt >= 0.7.0"
     ],
 )
