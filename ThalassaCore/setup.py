@@ -2,7 +2,7 @@ from setuptools import setup
 
 MAJOR = 0
 MINOR = 1
-RELEASE = 2
+RELEASE = 3
 
 setup(
     name="Thalassa",

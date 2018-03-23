@@ -2,6 +2,7 @@
 import thalassa.cache
 import thalassa.database.agent
 import thalassa.database.queries
+import thalassa.event
 import thalassa.players
 
 # Reference to all possible dependencies
@@ -47,6 +48,8 @@ def SetReferences(new_references=None, *, replace=False):
             thalassa.database.agent.WorldAgent:  thalassa.database.agent.WorldAgent,
             #    ---   thalassa.database.cache   ---    #
             thalassa.cache.CacheService: thalassa.cache.CacheService,
+            #    ---   thalassa.event   ---    #
+            thalassa.event.EventQueue: thalassa.event.EventQueue,
         }
         return
 
