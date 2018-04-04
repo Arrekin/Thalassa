@@ -11,7 +11,7 @@ class Player:
         """ Retrieve data about the world accessible to the player. 
             Return [IslandsContainer, FleetsContainer]"""
 
-        world_agent = thalassa.database.agent.WorldAgent()
+        world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
         world_islands = world_agent.get_islands()
         world_fleets = world_agent.get_fleets(on_sea=True, at_port=False)
 

@@ -39,12 +39,13 @@ class WorldAgent(Agent):
         finally:
             session.close()
 
-    def get_fleets(self, *, on_sea, at_port):
+    def get_fleets(self, *, on_sea, at_port, fleet_ids=None):
         """ Return Fleets container object with all fleets.
 
         Args:
             on_sea(bool): Include fleets that are currently on the sea.
             at_port(bool): Include fleets that are currently at the port. 
+            fleet_ids(list): Limit search to provided list of fleet ids.
         """
         session = thalassa.factory.CreateDatabaseSession()
         try:
@@ -53,6 +54,8 @@ class WorldAgent(Agent):
                 fleets = fleets.filter(~Fleet.status==FLEET_ON_THE_SEA)
             if not at_port:
                 fleets = fleets.filter(~Fleet.status==FLEET_AT_THE_PORT)
+            if fleet_ids:
+                fleets = fleets.filter(Fleet.id.in_(fleet_ids))
             fleets = fleets.all()
             return thalassa.container.FleetsContainer(fleets)
         finally:

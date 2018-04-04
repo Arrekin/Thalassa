@@ -50,16 +50,23 @@ class Fleet(Base, ThalassaModel):
     position_x = Column(Integer, nullable=False)
     position_y = Column(Integer, nullable=False)
     position_timestamp = Column(Integer, nullable=False)
+    # Port in which the fleet is currently in
+    port = Column(Integer, ForeignKey('island.id'), nullable=True)
 
     owner = relationship('User', back_populates='fleets')
     journeys = relationship('FleetJourney', back_populates='fleet')
+
+    def soonest_journey(self):
+        return min(self.journeys, key=operator.attrgetter('arrival_time'))
 
 class FleetJourney(Base, ThalassaModel):
     __tablename__ = 'fleet_journey'
     id = Column(Integer, primary_key=True)
     fleet_id = Column(Integer,  ForeignKey('fleet.id'))
-    target_x = Column(Integer, nullable=False)
-    target_y = Column(Integer, nullable=False)
+    # target_port or target_coords(x & y) only one is non null.
+    target_port = Column(Integer, nullable=True)
+    target_x = Column(Integer, nullable=True)
+    target_y = Column(Integer, nullable=True)
     arrival_time = Column(Integer, nullable=False)
 
     fleet = relationship('Fleet', back_populates='journeys')
