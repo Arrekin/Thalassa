@@ -68,7 +68,7 @@ def execute_event(event_type, event_data):
         event_data(str): Details of the event(delimited by ";") """
     try:
         db_session = thalassa.factory.CreateDatabaseSession()
-        _EXECUTION_MAP[event_type](event_data)
+        _EXECUTION_MAP[event_type](event_data, db_session)
         db_session.commit()
     except:
         db_session.rollback()
@@ -92,7 +92,7 @@ def fleet_arrival(event_data, db_session):
 
     # First query the database for given fleet and validate it.
     world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
-    fleets_search = world_agent.fleets(db_session, on_sea=True, at_port=True, fleet_ids=[fleet_id])
+    fleets_search = world_agent.get_fleets(db_session, on_sea=True, at_port=True, fleet_ids=[fleet_id])
     try:
         fleet = fleets_search[fleet_id]
     except KeyError:
@@ -125,6 +125,7 @@ def fleet_arrival(event_data, db_session):
 
     # And at the end remove the journey
     db_session.delete(journey)
+    logger.debug("Journey[{}] of Fleet[{}] has ended".format(journey.id, fleet.id))
 
 
 _EXECUTION_MAP = {

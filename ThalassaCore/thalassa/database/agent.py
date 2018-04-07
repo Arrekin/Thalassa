@@ -35,7 +35,7 @@ class WorldAgent(Agent):
         
         Args:
             db_session(DatabeSession class): active session to database."""
-        result = self.session.query(Island)
+        result = db_session.query(Island)
         return thalassa.container.IslandsContainer(result)
 
     def get_fleets(self, db_session, *, on_sea, at_port, fleet_ids=None):

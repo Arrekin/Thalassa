@@ -1,5 +1,6 @@
 """ Contains definition of all database models. """
 import datetime
+import operator
 
 from sqlalchemy import CHAR, Column, DateTime, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base

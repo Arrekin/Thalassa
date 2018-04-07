@@ -1,5 +1,3 @@
-import operator
-
 import thalassa.factory
 import thalassa.database.agent
 import thalassa.event
@@ -8,8 +6,13 @@ EventType = thalassa.event.EventType
 
 def load_events_from_db():
     """ Load all relevant events from database and put them into queue. """
-    world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
-    fleets_on_sea = world_agent.get_fleets(on_sea=True, at_port=False)
+    try:
+        db_session = thalassa.factory.CreateDatabaseSession()
+        world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
+        fleets_on_sea = world_agent.get_fleets(db_session, on_sea=True, at_port=False)
+    finally:
+        db_session.close()
+
     for fleet in fleets_on_sea:
         if len(fleet.journeys) > 0:
             closest_journey = fleet.soonest_journey()

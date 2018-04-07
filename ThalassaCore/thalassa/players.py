@@ -73,7 +73,7 @@ class ExternalPlayer(Player):
             return
 
         if username and password:
-            user = self.agent.get_user(username=username)
+            user = self.agent.get_user(db_session, username=username)
             logger = thalassa.logging.get_logger("thalassa_api")
             logger.debug("-> User's data loaded: "+str("None" if not user else user.as_dict()))
             if user.password_hash is not None:
