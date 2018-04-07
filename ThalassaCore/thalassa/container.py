@@ -8,7 +8,7 @@ class ThalassaObjectsContainer:
 
     Args:
         initial_object(any): If iterable add all objects that are inside,
-            otherwise add the object itself.
+            otherwise add the object itself. Each object has to have id field.
     """
 
     def __init__(self, initial_object):

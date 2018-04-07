@@ -73,14 +73,21 @@ class WorldData(ThalassaTwistedResource):
         """ Return data required to display world view. """
         try:
             self.logger.info("WORLD data request")
-            player = factory.Create(players.ExternalPlayer)
-            player.authenticate(session_hash=request.getCookie(b'session_hash'))
-            if not player.is_authenticated():
-                request.setResponseCode(401)
-                request.finish()
-                return
+            try:
+                db_session = factory.CreateDatabaseSession()
+                player = factory.Create(players.ExternalPlayer)
+                player.authenticate(db_session, session_hash=request.getCookie(b'session_hash'))
+                if not player.is_authenticated():
+                    request.setResponseCode(401)
+                    request.finish()
+                    return
 
-            world_islands, world_fleets = player.get_full_world_data()
+                world_islands, world_fleets = player.get_full_world_data(db_session)
+            except:
+                # db_session.rollback() there is nothing to rollback
+                raise
+            finally:
+                db_session.close()
             full_data = {**world_islands.to_jsonready_dict(), **world_fleets.to_jsonready_dict()}
             request.write(bytes(json.dumps(full_data), "utf-8"))
             request.finish()
@@ -117,10 +124,16 @@ class Login(ThalassaTwistedResource):
             self.logger.info("LOGIN request; User: {}, Password: {}".format(username, password))
 
             # TODO: Generate proper session hash and store it in redis
-            new_player = factory.Create(players.ExternalPlayer)
-            self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
-            new_player.authenticate(username=username, password=password)
-            self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
+            try:
+                db_session = factory.CreateDatabaseSession()
+                new_player = factory.Create(players.ExternalPlayer)
+                new_player.authenticate(db_session, username=username, password=password)
+                self.logger.debug("Is user authenticated: " + str(new_player.is_authenticated()))
+            except:
+                # db_session.rollback() # there is nothing to rollback
+                raise
+            finally:
+                db_session.close()
             if new_player.session_hash is None:
                 return self.render_GET(request)
 

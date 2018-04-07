@@ -15,48 +15,44 @@ class Agent:
 class PlayerAgent(Agent):
     """ Agent extracting players data from database. """
 
-    def get_user(self, *, username):
-        """ Returns user with given username or None if user were not found. """
-        session = thalassa.factory.CreateDatabaseSession()
-        try:
-            result = session.query(User).\
-                                    filter(User.login==username).\
-                                    one_or_none()
-            return result
-        finally:
-            session.close()
+    def get_user(self, db_session, *, username):
+        """ Returns user with given username or None if user were not found.
+        
+        Args:
+            db_session(DatabeSession class): active session to database.
+            username(string): username to look for."""
+        result = db_session.query(User).\
+                                filter(User.login==username).\
+                                one_or_none()
+        return result
 
 
 class WorldAgent(Agent):
     """ Class for extracting world data from database. """
 
-    def get_islands(self):
-        """ Return Islands container object with all islands. """
-        session = thalassa.factory.CreateDatabaseSession()
-        try:
-            result = session.query(Island)
-            return thalassa.container.IslandsContainer(result)
-        finally:
-            session.close()
+    def get_islands(self, db_session):
+        """ Return Islands container object with all islands.
+        
+        Args:
+            db_session(DatabeSession class): active session to database."""
+        result = self.session.query(Island)
+        return thalassa.container.IslandsContainer(result)
 
-    def get_fleets(self, *, on_sea, at_port, fleet_ids=None):
+    def get_fleets(self, db_session, *, on_sea, at_port, fleet_ids=None):
         """ Return Fleets container object with all fleets.
 
         Args:
+            db_session(DatabeSession class): active session to database.
             on_sea(bool): Include fleets that are currently on the sea.
             at_port(bool): Include fleets that are currently at the port. 
             fleet_ids(list): Limit search to provided list of fleet ids.
         """
-        session = thalassa.factory.CreateDatabaseSession()
-        try:
-            fleets = session.query(Fleet).options(joinedload(Fleet.journeys))
-            if not on_sea:
-                fleets = fleets.filter(~Fleet.status==FLEET_ON_THE_SEA)
-            if not at_port:
-                fleets = fleets.filter(~Fleet.status==FLEET_AT_THE_PORT)
-            if fleet_ids:
-                fleets = fleets.filter(Fleet.id.in_(fleet_ids))
-            fleets = fleets.all()
-            return thalassa.container.FleetsContainer(fleets)
-        finally:
-            session.close()
+        fleets = db_session.query(Fleet).options(joinedload(Fleet.journeys))
+        if not on_sea:
+            fleets = fleets.filter(~Fleet.status==FLEET_ON_THE_SEA)
+        if not at_port:
+            fleets = fleets.filter(~Fleet.status==FLEET_AT_THE_PORT)
+        if fleet_ids:
+            fleets = fleets.filter(Fleet.id.in_(fleet_ids))
+        fleets = fleets.all()
+        return thalassa.container.FleetsContainer(fleets)

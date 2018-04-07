@@ -47,8 +47,8 @@ class Fleet(Base, ThalassaModel):
     status = Column(Integer, nullable=False)
     # The x & y positions represents the last reached location at the time
     # given in the timestamp
-    position_x = Column(Integer, nullable=False)
-    position_y = Column(Integer, nullable=False)
+    position_x = Column(Integer, nullable=True)
+    position_y = Column(Integer, nullable=True)
     position_timestamp = Column(Integer, nullable=False)
     # Port in which the fleet is currently in
     port = Column(Integer, ForeignKey('island.id'), nullable=True)
@@ -57,7 +57,18 @@ class Fleet(Base, ThalassaModel):
     journeys = relationship('FleetJourney', back_populates='fleet')
 
     def soonest_journey(self):
+        """ Return the journey that is closest in regards to time. """
         return min(self.journeys, key=operator.attrgetter('arrival_time'))
+
+    def set_sea_position(self, x, y):
+        self.position_x = x
+        self.position_y = y
+        self.port = None
+
+    def set_port(self, port):
+        self.port = port
+        self.position_x = None
+        self.position_y = None
 
 class FleetJourney(Base, ThalassaModel):
     __tablename__ = 'fleet_journey'

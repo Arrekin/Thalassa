@@ -7,13 +7,16 @@ import thalassa.logging
 class Player:
     """ Base class for entities that can influence game progress. """
 
-    def get_full_world_data(self):
+    def get_full_world_data(self, db_session):
         """ Retrieve data about the world accessible to the player. 
-            Return [IslandsContainer, FleetsContainer]"""
+            Return [IslandsContainer, FleetsContainer]
+            
+        Args:
+            db_session(DatabeSession class): active session to database."""
 
         world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
-        world_islands = world_agent.get_islands()
-        world_fleets = world_agent.get_fleets(on_sea=True, at_port=False)
+        world_islands = world_agent.get_islands(db_session)
+        world_fleets = world_agent.get_fleets(db_session, on_sea=True, at_port=False)
 
         return world_islands, world_fleets
 
@@ -42,7 +45,7 @@ class ExternalPlayer(Player):
         return self.session_hash is not None
 
 
-    def authenticate(self, *, session_hash=None, username=None, password=None):
+    def authenticate(self, db_session, *, session_hash=None, username=None, password=None):
         """ Checks if provided credentials are valid.
 
         Note:
@@ -50,6 +53,7 @@ class ExternalPlayer(Player):
             or session_hash if player has already an active session.
 
         Args:
+            db_session(DatabeSession class): active session to database.
             session_hash (string): Hash generated when player was logging in.
             username (string): Player's username.
             password (string): Player's password.
