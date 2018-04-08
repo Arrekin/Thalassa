@@ -14,9 +14,8 @@ def load_events_from_db():
         db_session.close()
 
     for fleet in fleets_on_sea:
-        if len(fleet.journeys) > 0:
-            closest_journey = fleet.soonest_journey()
-            event_queue.put(absolute_event_time=closest_journey.arrival_time,
+        for journey in fleet.journeys:
+            event_queue.put(absolute_event_time=journey.arrival_time,
                       event_type=EventType.FLEET_ARRIVAL,
                       event_data=str(fleet.id))    
 

@@ -96,6 +96,7 @@ class WorldData(ThalassaTwistedResource):
             traceback.print_exc()
             request.setResponseCode(500)
             request.finish()
+        self.logger.info("-> OK")
 
 
 class Login(ThalassaTwistedResource):

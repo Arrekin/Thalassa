@@ -15,6 +15,11 @@ WorldModel.prototype = {
 
     initialize: function () {
         // Get basic world data
+        setInterval(this.get_world_data.bind(this), 1000);
+    },
+
+    get_world_data: function () {
+        // Get basic world data
         $.ajax({
             type: "get", url: "world/data",
             success: (raw_data, status) => {
@@ -48,5 +53,5 @@ WorldModel.prototype = {
                 }
             }
         });
-    },
+    }
 };

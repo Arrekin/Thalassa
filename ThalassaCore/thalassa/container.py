@@ -81,10 +81,10 @@ class FleetsContainer(ThalassaObjectsContainer):
                 new_fleet['horizontal_speed'] = 0
                 new_fleet['vertical_speed'] = 0
             else:
-                curr_journey = min(fleet.journeys, key=lambda journey: journey.arrival_time)
+                curr_journey = fleet.soonest_journey()
                 time_diff = curr_journey.arrival_time - fleet.position_timestamp
-                new_fleet['horizontal_speed'] = time_diff / abs(fleet.position_x - curr_journey.target_x)
-                new_fleet['vertical_speed'] = time_diff / abs(fleet.position_x - curr_journey.target_x)
+                new_fleet['horizontal_speed'] = -(fleet.position_x - curr_journey.target_x) / time_diff
+                new_fleet['vertical_speed'] = -(fleet.position_y - curr_journey.target_y) / time_diff
             fleets.append(new_fleet)
 
         json_dict = {"fleets": fleets}

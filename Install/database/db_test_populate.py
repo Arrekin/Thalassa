@@ -44,6 +44,10 @@ flet_testo_1_journey_1 = FleetJourney(target_x=600,
                                       target_y=600,
                                       arrival_time=int(time.time())+60)
 fleet_testo_1.journeys.append(flet_testo_1_journey_1)
+flet_testo_1_journey_2 = FleetJourney(target_x=400,
+                                      target_y=100,
+                                      arrival_time=int(time.time())+120)
+fleet_testo_1.journeys.append(flet_testo_1_journey_2)
 
 
 session.commit()

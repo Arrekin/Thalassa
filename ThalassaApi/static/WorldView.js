@@ -118,7 +118,7 @@ WorldView.prototype = {
 		for (var islandId in islandsModels) {
 			if (islandsModels.hasOwnProperty(islandId)) {
 				if (!this.islands.hasOwnProperty(islandId)) {
-					// This island do not exist in the view. Add it.
+					// This island does not exist in the view. Add it.
                     this.islands[islandId] = new WorldIslandView(islandId, this);
 				}
 				// Let the island view update itself
@@ -132,11 +132,11 @@ WorldView.prototype = {
 	    for (var fleetId in fleetsModels) {
 	        if (fleetsModels.hasOwnProperty(fleetId)) {
 	            if (!this.fleets.hasOwnProperty(fleetId)) {
-	                // This island do not exist in the view. Add it.
+	                // This fleet does not exist in the view. Add it.
 	                this.fleets[fleetId] = new WorldFleetView(fleetId, this);
 	            }
 	            // Let the island view update itself
-	            this.fleets[fleetId].UpdateData();
+                this.fleets[fleetId].UpdateData();
 	        }
 	    }
 	},
