@@ -8,7 +8,8 @@ var WorldIslandView = function (id, worldView) {
 	this.y = null;
 
 	// View data
-	this.sprite = null;
+    this.sprite = null;
+    this.resourcesText = null;
 }
 
 WorldIslandView.prototype = {
@@ -18,7 +19,11 @@ WorldIslandView.prototype = {
 		islandModel = model.islands[this.id];
 		this.name = islandModel.name;
 		this.x = islandModel.x;
-		this.y = islandModel.y;
+        this.y = islandModel.y;
+
+        if (this.resourcesText) {
+            this.resourcesText.setText(`Wood: ${islandModel.wood}\nWheat: ${islandModel.wheat}\nWine: ${islandModel.wine}`);
+        }
 
 		this.Render();
 	},
@@ -36,9 +41,28 @@ WorldIslandView.prototype = {
 	    let thalassa = this.worldView.thalassa;
 	    this.sprite = new Sprite(thalassa.resources["static/images/island_icon.png"].texture);
 	    this.sprite.scale.x = 0.1;
-	    this.sprite.scale.y = 0.1;
-	    this.worldView.RegisterSprite(this.sprite);
-	}
+        this.sprite.scale.y = 0.1;
+        this.sprite.interactive = true;
+        //this.sprite.hitArea = new PIXI.Circle(this.sprite.x, this.sprite.y, 30);
+        this.sprite.mouseover = this._OnMouseEnter.bind(this);
+        this.sprite.mouseout = this._OnMouseExit.bind(this);
+        this.worldView.RegisterSprite(this.sprite);
+
+        // Resources text setup
+        this.resourcesText = new PIXI.Text("Wood: ## \nWheat: ##\nWine: ##");
+        this.resourcesText.x = 0;
+        this.resourcesText.y = 0;
+        this.resourcesText.visible = false;
+        this.worldView.RegisterSprite(this.resourcesText);
+    },
+
+    _OnMouseEnter: function () {
+        this.resourcesText.visible = true;
+    },
+
+    _OnMouseExit: function () {
+        this.resourcesText.visible = false;
+    },
 }
 
 var WorldFleetView = function (id, worldView) {

@@ -37,6 +37,10 @@ class Island(Base, ThalassaModel):
     x = Column(Integer, nullable=False)
     y = Column(Integer, nullable=False)
 
+    # Resources
+    wood = Column(Integer, nullable=False, default=0)
+    wheat = Column(Integer, nullable=False, default=0)
+    wine = Column(Integer, nullable=False, default=0)
 
 class Fleet(Base, ThalassaModel):
     __tablename__ = 'fleet'
@@ -53,6 +57,11 @@ class Fleet(Base, ThalassaModel):
     position_timestamp = Column(Integer, nullable=False)
     # Port in which the fleet is currently in
     port = Column(Integer, ForeignKey('island.id'), nullable=True)
+
+    # Resources
+    wood = Column(Integer, nullable=False, default=0)
+    wheat = Column(Integer, nullable=False, default=0)
+    wine = Column(Integer, nullable=False, default=0)
 
     owner = relationship('User', back_populates='fleets')
     journeys = relationship('FleetJourney', back_populates='fleet')

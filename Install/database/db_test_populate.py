@@ -1,5 +1,6 @@
 """ Populate databse with test data. """
 import time
+import random
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -21,17 +22,26 @@ session.add(user)
 
 island_otta = Island(name="Otta",
                      x=200,
-                     y=300)
+                     y=300,
+                     wood=random.randint(0,100),
+                     wheat=random.randint(0,100),
+                     wine=random.randint(0,100))
 session.add(island_otta)
 
 island_alda = Island(name="Alda",
                      x=500,
-                     y=100)
+                     y=100,
+                     wood=random.randint(0,100),
+                     wheat=random.randint(0,100),
+                     wine=random.randint(0,100))
 session.add(island_alda)
 
 island_grikmik = Island(name="Grikmik",
                      x=550,
-                     y=400)
+                     y=400,
+                     wood=random.randint(0,100),
+                     wheat=random.randint(0,100),
+                     wine=random.randint(0,100))
 session.add(island_grikmik)
 
 fleet_testo_1 = Fleet(status=1,
