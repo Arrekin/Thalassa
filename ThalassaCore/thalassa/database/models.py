@@ -1,6 +1,8 @@
 """ Contains definition of all database models. """
 import datetime
 import operator
+import random
+import time
 
 from sqlalchemy import CHAR, Column, DateTime, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,6 +10,9 @@ from sqlalchemy.orm import relationship
 
 FLEET_AT_THE_PORT = 0
 FLEET_ON_THE_SEA = 1
+
+USER_EXTERNAL = 0
+USER_AI = 1
 
 Base = declarative_base()
 
@@ -22,6 +27,10 @@ class User(Base, ThalassaModel):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     login = Column(String(64), nullable=False)
+    # Type of the account:
+    # USER_EXTERNAL - fe. regular players
+    # ISER_AI - internal bots
+    type = Column(Integer, nullable=False)
     # User password hashed with bcrypt
     password_hash = Column(CHAR(60), nullable=False)
     email = Column(String(64), nullable=False)
@@ -42,6 +51,9 @@ class Island(Base, ThalassaModel):
     wheat = Column(Integer, nullable=False, default=0)
     wine = Column(Integer, nullable=False, default=0)
 
+    fleets = relationship('Fleet', back_populates='port')
+
+
 class Fleet(Base, ThalassaModel):
     __tablename__ = 'fleet'
     id = Column(Integer, primary_key=True)
@@ -56,7 +68,7 @@ class Fleet(Base, ThalassaModel):
     position_y = Column(Integer, nullable=True)
     position_timestamp = Column(Integer, nullable=False)
     # Port in which the fleet is currently in
-    port = Column(Integer, ForeignKey('island.id'), nullable=True)
+    port_id = Column(Integer, ForeignKey('island.id'), nullable=True)
 
     # Resources
     wood = Column(Integer, nullable=False, default=0)
@@ -65,29 +77,60 @@ class Fleet(Base, ThalassaModel):
 
     owner = relationship('User', back_populates='fleets')
     journeys = relationship('FleetJourney', back_populates='fleet')
+    port = relationship('Island', back_populates='fleets')
 
     def soonest_journey(self):
         """ Return the journey that is closest in regards to time. """
         return min(self.journeys, key=operator.attrgetter('arrival_time'))
 
-    def set_sea_position(self, x, y):
+    def add_journey(self, *, target_x=None, target_y=None, target_port=None):
+        """ Create new journey and start it if there is no any other ongoing journey.
+        target coords and target port are mutually exclusive.
+        
+        Args:
+            target_x(int): destination position on x-axis.
+            target_y(int): destination position on y-axis.
+            target_port(int): id of target port."""
+        if target_x is None and target_y is None and target_port is None:
+            raise ValueError("Provided arguments are invalid.")
+        if (target_x is not None or target_y is not None) and target_port is not None:
+            raise ValueError("Mutually exclusive arguments.")
+
+        curr_time = int(time.time())
+        new_journey = FleetJourney(target_port_id=target_port,
+                                   target_x=target_x,
+                                   target_y=target_y,
+                                   arrival_time=curr_time+random.randint(60, 180))
+        self.journeys.append(new_journey)
+        if len(self.journeys) == 1:
+            self.set_sea_position(self.port.x, self.port.y, curr_time)
+        return new_journey
+
+
+    def set_sea_position(self, x, y, timestamp):
         self.position_x = x
         self.position_y = y
-        self.port = None
+        self.port_id = None
+        self.position_timestamp = timestamp
+        self.status = FLEET_ON_THE_SEA
 
-    def set_port(self, port):
-        self.port = port
+    def set_port(self, port, timestamp):
+        self.port_id = port
         self.position_x = None
         self.position_y = None
+        self.position_timestamp = timestamp
+        self.status = FLEET_AT_THE_PORT
+
 
 class FleetJourney(Base, ThalassaModel):
     __tablename__ = 'fleet_journey'
     id = Column(Integer, primary_key=True)
-    fleet_id = Column(Integer,  ForeignKey('fleet.id'))
-    # target_port or target_coords(x & y) only one is non null.
-    target_port = Column(Integer, nullable=True)
+    fleet_id = Column(Integer, ForeignKey('fleet.id'))
+    # target_port_id or target_coords(x & y) only one is non null.
+    target_port_id = Column(Integer, ForeignKey('island.id'), nullable=True)
     target_x = Column(Integer, nullable=True)
     target_y = Column(Integer, nullable=True)
     arrival_time = Column(Integer, nullable=False)
 
     fleet = relationship('Fleet', back_populates='journeys')
+    port = relationship('Island')

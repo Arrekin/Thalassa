@@ -42,6 +42,7 @@ WorldIslandView.prototype = {
 	    this.sprite = new Sprite(thalassa.resources["static/images/island_icon.png"].texture);
 	    this.sprite.scale.x = 0.1;
         this.sprite.scale.y = 0.1;
+        this.sprite.anchor.set(0.5);
         this.sprite.interactive = true;
         //this.sprite.hitArea = new PIXI.Circle(this.sprite.x, this.sprite.y, 30);
         this.sprite.mouseover = this._OnMouseEnter.bind(this);
@@ -113,6 +114,7 @@ WorldFleetView.prototype = {
         this.sprite.beginFill(0xFFFFFF);
         this.sprite.drawRect(0, 0, 32, 8);
         this.sprite.endFill();
+        this.sprite.pivot.set(16, 4);
         this.worldView.RegisterSprite(this.sprite);
     }
 }
@@ -151,7 +153,12 @@ WorldView.prototype = {
 		}
 	},
 
-	OnFleetsDataChanged: function () {
+    OnFleetsDataChanged: function () {
+        /////// !!!!!!!!! REWORK THIS
+        for (var fleetId in this.fleets) {
+            this.thalassa.stage.removeChild(this.fleets[fleetId].sprite)
+            delete this.fleets[fleetId]
+        }
 	    let fleetsModels = this.GetWorldModel().fleets;
 	    for (var fleetId in fleetsModels) {
 	        if (fleetsModels.hasOwnProperty(fleetId)) {

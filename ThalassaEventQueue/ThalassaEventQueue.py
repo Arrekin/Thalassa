@@ -39,5 +39,6 @@ def process():
         print("Event managed!")
 
 
-event_queue = thalassa.factory.Create(thalassa.event.EventQueue)
-process()
+if __name__ == '__main__':
+    event_queue = thalassa.factory.Create(thalassa.event.EventQueue)
+    process()

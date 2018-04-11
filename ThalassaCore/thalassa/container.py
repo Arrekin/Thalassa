@@ -40,6 +40,11 @@ class ThalassaObjectsContainer:
         self.container[object_to_add.id] = object_to_add
 
 
+    def keys(self):
+        """ Return list of objects' ids that are in the container. """
+        return list(self.container.keys())
+
+
     def to_jsonready_dict(self):
         """ Convert container to dict that is ready to be converted into JSON. """
         raise NotImplementedError("This is to_json() ThalassaObjectContainer method.")
@@ -75,9 +80,11 @@ class FleetsContainer(ThalassaObjectsContainer):
                 new_fleet['vertical_speed'] = 0
             else:
                 curr_journey = fleet.soonest_journey()
+                target_x = curr_journey.port.x if curr_journey.port else curr_journey.target_x
+                target_y = curr_journey.port.y if curr_journey.port else curr_journey.target_y
                 time_diff = curr_journey.arrival_time - fleet.position_timestamp
-                new_fleet['horizontal_speed'] = -(fleet.position_x - curr_journey.target_x) / time_diff
-                new_fleet['vertical_speed'] = -(fleet.position_y - curr_journey.target_y) / time_diff
+                new_fleet['horizontal_speed'] = -(fleet.position_x - target_x) / time_diff
+                new_fleet['vertical_speed'] = -(fleet.position_y - target_y) / time_diff
             fleets.append(new_fleet)
 
         json_dict = {"fleets": fleets}

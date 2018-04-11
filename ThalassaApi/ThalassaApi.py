@@ -83,12 +83,12 @@ class WorldData(ThalassaTwistedResource):
                     return
 
                 world_islands, world_fleets = player.get_full_world_data(db_session)
+                full_data = {**world_islands.to_jsonready_dict(), **world_fleets.to_jsonready_dict()}
             except:
                 # db_session.rollback() there is nothing to rollback
                 raise
             finally:
                 db_session.close()
-            full_data = {**world_islands.to_jsonready_dict(), **world_fleets.to_jsonready_dict()}
             request.write(bytes(json.dumps(full_data), "utf-8"))
             request.finish()
         except Exception as exc:

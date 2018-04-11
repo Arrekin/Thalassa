@@ -38,21 +38,32 @@ class WorldAgent(Agent):
         result = db_session.query(Island)
         return thalassa.container.IslandsContainer(result)
 
-    def get_fleets(self, db_session, *, on_sea, at_port, fleet_ids=None):
-        """ Return Fleets container object with all fleets.
+    def get_fleets(self, db_session, *,
+                   on_sea,
+                   at_port,
+                   fleets_ids=None,
+                   fleets_owners=None,
+                   owners_types=None):
+        """ Return Fleets container object with fleets meeting requested criteria.
 
         Args:
             db_session(DatabeSession class): active session to database.
             on_sea(bool): Include fleets that are currently on the sea.
             at_port(bool): Include fleets that are currently at the port. 
-            fleet_ids(list): Limit search to provided list of fleet ids.
+            fleets_ids(integers list): Limit search to provided list of fleets' ids.
+            fleets_owners(integers list): Limit search to provided list of owners' ids.
+            onwers_types(integers list): Limit search to provided list of owners' types.
         """
         fleets = db_session.query(Fleet).options(joinedload(Fleet.journeys))
         if not on_sea:
             fleets = fleets.filter(~Fleet.status==FLEET_ON_THE_SEA)
         if not at_port:
             fleets = fleets.filter(~Fleet.status==FLEET_AT_THE_PORT)
-        if fleet_ids:
-            fleets = fleets.filter(Fleet.id.in_(fleet_ids))
+        if fleets_ids:
+            fleets = fleets.filter(Fleet.id.in_(fleets_ids))
+        if fleets_owners:
+            fleets = fleets.filter(Fleet.owner_id.in_(fleets_owners))
+        if owners_types:
+            fleets = fleets.join(User).filter(User.type.in_(owners_types))
         fleets = fleets.all()
         return thalassa.container.FleetsContainer(fleets)

@@ -77,7 +77,7 @@ def execute_event(event_type, event_data):
         db_session.close()
 
 
-def fleet_arrival(event_data, db_session):
+def finalize_fleet_arrival(event_data, db_session):
     """ Execute event of fleet with <fleet_id>
     Args:
         event_data(string): fleet_id
@@ -92,7 +92,7 @@ def fleet_arrival(event_data, db_session):
 
     # First query the database for given fleet and validate it.
     world_agent = thalassa.factory.Create(thalassa.database.agent.WorldAgent)
-    fleets_search = world_agent.get_fleets(db_session, on_sea=True, at_port=True, fleet_ids=[fleet_id])
+    fleets_search = world_agent.get_fleets(db_session, on_sea=True, at_port=True, fleets_ids=[fleet_id])
     try:
         fleet = fleets_search[fleet_id]
     except KeyError:
@@ -117,11 +117,10 @@ def fleet_arrival(event_data, db_session):
         raise EventExecutionFailed
 
     # Now it's time to update fleet position
-    if journey.target_port is not None:
-        fleet.set_port(journey.target_port)
+    if journey.target_port_id is not None:
+        fleet.set_port(journey.target_port_id, journey.arrival_time)
     else:
-        fleet.set_sea_position(journey.target_x, journey.target_y)
-    fleet.position_timestamp = journey.arrival_time
+        fleet.set_sea_position(journey.target_x, journey.target_y, journey.arrival_time)
 
     # And at the end remove the journey
     db_session.delete(journey)
@@ -129,5 +128,5 @@ def fleet_arrival(event_data, db_session):
 
 
 _EXECUTION_MAP = {
-    EventType.FLEET_ARRIVAL: fleet_arrival,
+    EventType.FLEET_ARRIVAL: finalize_fleet_arrival,
     }
