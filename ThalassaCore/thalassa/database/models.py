@@ -16,11 +16,30 @@ USER_AI = 1
 
 Base = declarative_base()
 
-class ThalassaModel():
+class ThalassaModel:
 
     def as_dict(self):
         """ Return Island data as dict. """
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class ResourceStorage:
+
+    def transfer_resources(self, recipient, *,
+                           wood=0,
+                           wheat=0,
+                           wine=0):
+        """ Transfer resources to recipient.
+
+        Args:
+            recipient(ResourceStorage): Other object that can store resources.
+            other arguements(int): Number of resources to transfer. """
+        self.wood -= wood
+        recipient.wood += wood
+        self.wheat -= wheat
+        recipient.wheat += wheat
+        self.wine -= wine
+        recipient.wine += wine
 
 
 class User(Base, ThalassaModel):
@@ -39,7 +58,7 @@ class User(Base, ThalassaModel):
     fleets = relationship('Fleet', back_populates='owner')
 
 
-class Island(Base, ThalassaModel):
+class Island(Base, ThalassaModel, ResourceStorage):
     __tablename__ = 'island'
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
@@ -54,7 +73,7 @@ class Island(Base, ThalassaModel):
     fleets = relationship('Fleet', back_populates='port')
 
 
-class Fleet(Base, ThalassaModel):
+class Fleet(Base, ThalassaModel, ResourceStorage):
     __tablename__ = 'fleet'
     id = Column(Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey('user.id'))
@@ -108,6 +127,12 @@ class Fleet(Base, ThalassaModel):
 
 
     def set_sea_position(self, x, y, timestamp):
+        """ Move fleet to the given corrds on the sea.
+       
+        Args:
+            x(int): position on x-axis.
+            y(int): position on y-axis.
+            timestamp(int): date timestamp telling when fleet appeared at the position. """
         self.position_x = x
         self.position_y = y
         self.port_id = None
@@ -115,6 +140,11 @@ class Fleet(Base, ThalassaModel):
         self.status = FLEET_ON_THE_SEA
 
     def set_port(self, port, timestamp):
+        """ Move fleet into the port.
+       
+        Args:
+            port(int): Id of island where port is located.
+            timestamp(int): date timestamp telling when fleet appeared at the port. """
         self.port_id = port
         self.position_x = None
         self.position_y = None

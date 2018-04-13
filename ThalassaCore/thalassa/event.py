@@ -119,6 +119,7 @@ def finalize_fleet_arrival(event_data, db_session):
     # Now it's time to update fleet position
     if journey.target_port_id is not None:
         fleet.set_port(journey.target_port_id, journey.arrival_time)
+        fleet.transfer_resources(journey.port, wood=fleet.wood, wheat=fleet.wheat, wine=fleet.wine)
     else:
         fleet.set_sea_position(journey.target_x, journey.target_y, journey.arrival_time)
 

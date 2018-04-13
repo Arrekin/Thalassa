@@ -30,12 +30,7 @@ if __name__ == '__main__':
             wood_load = random.randint(0, min(port.wood, 10))
             wheat_load = random.randint(0, min(port.wheat, 10))
             wine_load = random.randint(0, min(port.wine, 10))
-            port.wood -= wood_load
-            port.wheat -= wheat_load
-            port.wine -= wine_load
-            choosen_fleet.wood += wood_load
-            choosen_fleet.wheat += wheat_load
-            choosen_fleet.wine += wine_load
+            port.transfer_resources(choosen_fleet, wood=wood_load, wheat=wheat_load, wine=wine_load)
             
             islands = world_agent.get_islands(db_session)
             islands_ids = islands.keys()
