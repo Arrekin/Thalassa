@@ -17,18 +17,24 @@ def load_events_from_db():
         for journey in fleet.journeys:
             event_queue.put(absolute_event_time=journey.arrival_time,
                       event_type=EventType.FLEET_ARRIVAL,
-                      event_data=str(fleet.id))    
-
+                      event_data=';'.join((str(journey.id), str(fleet.id))))
 
 
 def manage_event(event):
     print("Got task from queue:{}".format(event.body))
     event_type, event_data = event.body.split(",")
     event_type = EventType[event_type]
-
-    thalassa.event.execute_event(event_type, event_data)
-
-    event_queue.delete(event)
+    try:
+        thalassa.event.execute_event(event_type, event_data)
+    except thalassa.event.EventExecutionFailed as exc:
+        print("Event execution Failed: {}".format(exc))
+        event_queue.delete(event)
+    except:
+        import traceback
+        traceback.print_exc()
+        event_queue.release(event)
+    else:
+        event_queue.delete(event)
 
 
 def process():

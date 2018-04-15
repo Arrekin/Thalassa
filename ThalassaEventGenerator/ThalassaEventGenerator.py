@@ -42,7 +42,7 @@ if __name__ == '__main__':
             print("Fleet [{}] going to [{}] with [wood:{}, wheat:{}, wine:{}]".format(
                 choosen_fleet.id, target_island.name, choosen_fleet.wood, choosen_fleet.wheat, choosen_fleet.wine))
         except:
-            db_session.rollback()
+            #db_session.rollback()
             import traceback
             traceback.print_exc()
         else:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 event_queue = thalassa.factory.Create(thalassa.event.EventQueue)
                 event_queue.put(absolute_event_time=new_journey.arrival_time,
                                 event_type=EventType.FLEET_ARRIVAL,
-                                event_data=str(choosen_fleet.id))
+                                event_data=';'.join((str(new_journey.id),str(choosen_fleet.id))))
                 print("Added to event queue.")
             except:
                 import traceback

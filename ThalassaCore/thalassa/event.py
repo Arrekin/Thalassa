@@ -47,6 +47,11 @@ class EventQueue:
         return self.event_queue.reserve(timeout=timeout)
 
 
+    def release(self, job):
+        """ Look at greenstalk.release(). """
+        return self.event_queue.release(job=job)
+
+
     def delete(self, job):
         """ Look at greenstalk.delete(). """
         return self.event_queue.delete(job=job)
@@ -83,7 +88,7 @@ def finalize_fleet_arrival(event_data, db_session):
         event_data(string): fleet_id
         db_session(DatabeSession class): active session to database"""
     try:
-        fleet_id = int(event_data)
+        journey_id, fleet_id = [int(elem) for elem in event_data.split(';')]
     except (ValueError, TypeError) as exc:
         logger.error("Event FLEET_ARRIVAL data corrupted!")
         logger.error("Corrupted event data: {}".format(fleet_id))
@@ -108,7 +113,14 @@ def finalize_fleet_arrival(event_data, db_session):
         logger.error("Event FLEET_ARRIVAL fleet[{}] has no pending journeys!".format(fleet_id))
         raise EventExecutionFailed
     journey = fleet.soonest_journey()
-    current_time = time.time()
+    if journey.id != journey_id:
+        logger.error("Event FLEET_ARRIVAL journey[{}] marked for finish but it seems there are some earlier unfinished journeys!".format(journey.id))
+        raise EventExecutionFailed
+    if journey.fleet.id != fleet_id:
+        logger.error("Event FLEET_ARRIVAL journey[{} does not belong to fleet[{}]!".format(journey.id, fleet_id))
+        logger.debug("Journey data: {}, Fleet data: {}".format(journey.as_dict(), fleet.as_dict()))
+        raise EventExecutionFailed
+    current_time = int(time.time())
     if current_time < journey.arrival_time:
         logger.error("Event FLEET_ARRIVAL fleet[{}] journey[{}] did not end yet!".format(fleet_id, journey.id))
         logger.error("Current time [{}], Arrival time [{}]".format(current_time, journey.arrival_time))
