@@ -121,8 +121,10 @@ class Fleet(Base, ThalassaModel, ResourceStorage):
                                    target_y=target_y,
                                    arrival_time=curr_time+random.randint(60, 180))
         self.journeys.append(new_journey)
-        if len(self.journeys) == 1:
+        if self.port is not None:
             self.set_sea_position(self.port.x, self.port.y, curr_time)
+        elif len(self.journeys) == 1:
+            self.set_sea_position(self.position_x, self.position_y, curr_time)
         return new_journey
 
 

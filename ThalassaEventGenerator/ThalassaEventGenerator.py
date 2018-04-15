@@ -38,25 +38,20 @@ if __name__ == '__main__':
             target_island = islands[random.choice(islands_ids)]
 
             new_journey = choosen_fleet.add_journey(target_port=target_island.id)
-            db_session.commit()
+            db_session.flush()
+            thalassa.event.create_fleet_arrival(journey_id=new_journey.id,
+                                    fleet_id=choosen_fleet.id,
+                                    arrival_time=new_journey.arrival_time)
             print("Fleet [{}] going to [{}] with [wood:{}, wheat:{}, wine:{}]".format(
                 choosen_fleet.id, target_island.name, choosen_fleet.wood, choosen_fleet.wheat, choosen_fleet.wine))
+            db_session.commit()
         except:
-            #db_session.rollback()
             import traceback
             traceback.print_exc()
-        else:
-            try:
-                event_queue = thalassa.factory.Create(thalassa.event.EventQueue)
-                event_queue.put(absolute_event_time=new_journey.arrival_time,
-                                event_type=EventType.FLEET_ARRIVAL,
-                                event_data=';'.join((str(new_journey.id),str(choosen_fleet.id))))
-                print("Added to event queue.")
-            except:
-                import traceback
-                traceback.print_exc()
-            finally:
-                event_queue.close()
+            # Check if it was commited. Strange sqlite3 I/O exceptions are sometimes rised but 
+            # transaction is commited anyway.
+            if new_journey.id is not None:
+                print("The changes were commited!!!")
         finally:
             db_session.close()
             print("going to sleep...")

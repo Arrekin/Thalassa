@@ -37,6 +37,21 @@ function OnGameLoaded() {
     Thalassa.delta = 0;
     Thalassa.timestamp = Date.now() / 1000;
 
+    Thalassa.stage.hitArea = new PIXI.Rectangle(0, 0, 600, 600);
+    Thalassa.stage.interactive = true;
+    Thalassa.stage.click = function (event) {
+        let target = event.data.getLocalPosition(Thalassa.stage);
+        console.log(target); // 'click', PIXI.DisplayObject {}
+        $.ajax({
+            method: "post",
+            url: "world/cmd_move_fleet",
+            data: { fleet_id: 1, x: target.x, y: target.y },
+            success: (raw_data, status) => {
+                console.log(status);
+            }
+        });
+    };
+
     Thalassa.worldModel = new WorldModel(Thalassa);
     Thalassa.worldView = new WorldView(Thalassa);
 

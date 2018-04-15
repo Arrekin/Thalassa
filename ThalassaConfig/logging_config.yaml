@@ -32,6 +32,10 @@ loggers:
         level: DEBUG
         propagate: True
         handlers: [file_handler]
+    thalassa_player:
+        level: DEBUG
+        propagate: True
+        handlers: [file_handler]
 
 root:
     handlers: [console_handler]

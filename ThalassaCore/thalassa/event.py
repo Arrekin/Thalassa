@@ -82,6 +82,27 @@ def execute_event(event_type, event_data):
         db_session.close()
 
 
+def create_fleet_arrival(*, journey_id, fleet_id, arrival_time):
+    """ Create event FLEET_ARRIVAL and push it into queue.
+    
+    Args:
+        journey_id(int): FleetJourney table row id.
+        fleet_id(int): Fleet table row id.
+        arrival_time(int): Timestamp indicating end of the journey."""
+    try:
+        event_queue = thalassa.factory.Create(thalassa.event.EventQueue)
+        event = event_queue.put(absolute_event_time=arrival_time,
+                        event_type=EventType.FLEET_ARRIVAL,
+                        event_data=';'.join((str(journey_id),str(fleet_id))))
+        logger.info("Added to event queue.")
+        return event
+    except:
+        import traceback
+        traceback.print_exc()
+    finally:
+        event_queue.close()
+
+
 def finalize_fleet_arrival(event_data, db_session):
     """ Execute event of fleet with <fleet_id>
     Args:
@@ -113,12 +134,12 @@ def finalize_fleet_arrival(event_data, db_session):
         logger.error("Event FLEET_ARRIVAL fleet[{}] has no pending journeys!".format(fleet_id))
         raise EventExecutionFailed
     journey = fleet.soonest_journey()
-    if journey.id != journey_id:
-        logger.error("Event FLEET_ARRIVAL journey[{}] marked for finish but it seems there are some earlier unfinished journeys!".format(journey.id))
-        raise EventExecutionFailed
     if journey.fleet.id != fleet_id:
         logger.error("Event FLEET_ARRIVAL journey[{} does not belong to fleet[{}]!".format(journey.id, fleet_id))
         logger.debug("Journey data: {}, Fleet data: {}".format(journey.as_dict(), fleet.as_dict()))
+        raise EventExecutionFailed
+    if journey.id != journey_id:
+        logger.error("Event FLEET_ARRIVAL journey[{}] marked for finish but it seems there are some earlier unfinished journeys!".format(journey.id))
         raise EventExecutionFailed
     current_time = int(time.time())
     if current_time < journey.arrival_time:

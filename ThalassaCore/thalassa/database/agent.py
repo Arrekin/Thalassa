@@ -30,13 +30,16 @@ class PlayerAgent(Agent):
 class WorldAgent(Agent):
     """ Class for extracting world data from database. """
 
-    def get_islands(self, db_session):
+    def get_islands(self, db_session, *, islands_ids=None):
         """ Return Islands container object with all islands.
         
         Args:
             db_session(DatabeSession class): active session to database."""
-        result = db_session.query(Island)
-        return thalassa.container.IslandsContainer(result)
+        islands = db_session.query(Island)
+        if islands_ids:
+            islands = islands.filter(Island.id.in_(islands_ids))
+        islands = islands.all()
+        return thalassa.container.IslandsContainer(islands)
 
     def get_fleets(self, db_session, *,
                    on_sea,
